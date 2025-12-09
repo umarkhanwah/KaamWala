@@ -26,3 +26,31 @@ class ProductModel {
     );
   }
 }
+// class ProductModel {
+//   final String id;
+//   final String title;
+//   final String des;
+//   final String price;
+//   final String category;
+//   final String img;
+
+//   ProductModel({
+//     required this.id,
+//     required this.title,
+//     required this.des,
+//     required this.price,
+//     required this.category,
+//     required this.img,
+//   });
+
+//   factory ProductModel.fromJson(Map<String, dynamic> data) {
+//     return ProductModel(
+//       id: data['id'] ?? '',
+//       title: data['title'] ?? '',
+//       des: data['des'] ?? '',
+//       price: data['price'] ?? '',
+//       category: data['Category'] ?? '',
+//       img: data['img'] ?? '',
+//     );
+//   }
+// }

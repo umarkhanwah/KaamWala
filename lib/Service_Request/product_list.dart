@@ -579,3 +579,194 @@ class _ProductListScreennewState extends State<ProductListScreennew> {
     );
   }
 }
+
+
+
+// import 'dart:convert';
+
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:kam_wala_app/image%20crud%20hamdeling/product_model.dart';
+
+
+// class ProductPage extends StatefulWidget {
+//   final String categoryName;
+//   final String docId;
+//   final String categoryId;
+
+//   const ProductPage({
+//     super.key,
+//     required this.categoryName,
+//     required this.docId,
+//     required this.categoryId,
+//   });
+
+//   @override
+//   State<ProductPage> createState() => _ProductPageState();
+// }
+
+// class _ProductPageState extends State<ProductPage> {
+//   List<ProductModel> productList = [];
+
+//   String? categoryName;
+// bool isLoadingCategory = true;
+
+// /// 🔹 Fetch services by category ID
+// Future<List<ProductModel>> fetchServicesByCategory() async {
+//   final snapshot = await FirebaseFirestore.instance
+//       .collection('services')
+//       .where('categoryId', isEqualTo: widget.category)
+//       .get();
+
+//   return snapshot.docs
+//       .map((doc) => ProductModel.fromFirestore(doc.data(), doc.id))
+//       .toList();
+// }
+
+// Future<void> fetchCategoryName() async {
+//   try {
+//     final doc = await FirebaseFirestore.instance
+//         .collection('categories')
+//         .doc(widget.category) // category ID
+//         .get();
+
+//     if (doc.exists) {
+//       setState(() {
+//         categoryName = doc['name'];
+//         isLoadingCategory = false;
+//       });
+//     } else {
+//       setState(() {
+//         categoryName = "Unknown Category";
+//         isLoadingCategory = false;
+//       });
+//     }
+//   } catch (e) {
+//     setState(() {
+//       categoryName = "Error Loading";
+//       isLoadingCategory = false;
+//     });
+//   }
+// }
+
+
+//   @override
+//   void initState() {
+//     check();
+//     super.initState();
+//     fetchCategoryName();   // 🔹 fetch category name
+//   }
+
+//   void check() async {
+//     try {
+//       FirebaseFirestore.instance
+//           .collection("Advance / Products")
+//           .where("Category", isEqualTo: widget.categoryName)
+//           .snapshots()
+//           .listen((event) {
+//         productList.clear();
+//         for (final doc in event.docs) {
+//           print(doc.data());
+//           productList.add(ProductModel.fromJson(doc.data()));
+//         }
+//         setState(() {});
+//       });
+//     } catch (e) {
+//       print("Error: $e");
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//      appBar: AppBar(
+//   flexibleSpace: Container(
+//     decoration: const BoxDecoration(
+//       gradient: LinearGradient(
+//         colors: [Color(0xff2193b0), Color(0xff6dd5ed)],
+//         begin: Alignment.topLeft,
+//         end: Alignment.bottomRight,
+//       ),
+//     ),
+//   ),
+//   title: Text(
+//     isLoadingCategory
+//         ? "Loading..."
+//         : (categoryName ?? "Category"),
+//     style: const TextStyle(
+//       fontWeight: FontWeight.bold,
+//       color: Colors.white,
+//       fontSize: 20,
+//       letterSpacing: 1.2,
+//     ),
+//   ),
+//   centerTitle: true,
+//   elevation: 6,
+// ),
+//       body: productList.isEmpty
+//           ? const Center(
+//               child: Text(
+//                 "No product found",
+//                 style: TextStyle(color: Colors.grey),
+//               ),
+//             )
+//           : ListView.builder(
+//               itemCount: productList.length,
+//               itemBuilder: (context, index) {
+//                 final product = productList[index];
+
+//                 return Container(
+//                   padding: const EdgeInsets.all(10),
+//                   decoration: const BoxDecoration(
+//                     border: Border(
+//                       bottom: BorderSide(color: Colors.grey),
+//                     ),
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       ClipRRect(
+//                         borderRadius: BorderRadius.circular(10),
+//                         child: Image.memory(
+//                           base64Decode(product.img),
+//                           height: 80,
+//                           width: 80,
+//                           fit: BoxFit.cover,
+//                         ),
+//                       ),
+//                       const SizedBox(width: 10),
+//                       Expanded(
+//                         child: Column(
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Text(
+//                               product.title,
+//                               style: const TextStyle(
+//                                   fontWeight: FontWeight.bold, fontSize: 16),
+//                             ),
+//                             const SizedBox(height: 5),
+//                             Text(
+//                               "PKR: ${product.price}",
+//                               style: const TextStyle(
+//                                 color: Colors.blue,
+//                                 fontWeight: FontWeight.bold,
+//                                 fontSize: 15,
+//                               ),
+//                             ),
+//                             const SizedBox(height: 5),
+//                             Text(
+//                               product.des,
+//                               maxLines: 2,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: const TextStyle(color: Colors.grey),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 );
+//               },
+//             ),
+//     );
+//   }
+// }

@@ -704,7 +704,8 @@ class _AdmindrawerState extends State<Admindrawer> {
                             onTap: () {
                               Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (context) => Post()),
+                                MaterialPageRoute(builder: (context) => CategoryCrud()),
+                                // MaterialPageRoute(builder: (context) => Post()),
                               );
                             },
                           ),

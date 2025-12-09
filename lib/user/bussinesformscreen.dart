@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:kam_wala_app/image%20crud%20hamdeling/imagedatafatech.dart';
 import 'package:kam_wala_app/user/3services_select_screen.dart';
 import '../firebase_options.dart';
 
@@ -168,7 +169,8 @@ class _BusinessFormScreenState extends State<BusinessFormScreen> {
             onPressed:
                 () => Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => Home3Screen()),
+                  MaterialPageRoute(builder: (context) => FetchAllCategories()),
+                  // MaterialPageRoute(builder: (context) => Home3Screen()),
                 ),
           ),
         ),

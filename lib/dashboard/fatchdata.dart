@@ -52,7 +52,8 @@ class _FatechdataState extends State<Fatechdata> {
         onPressed: () {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const Post()),
+            MaterialPageRoute(builder: (context) => const CategoryCrud()),
+            // MaterialPageRoute(builder: (context) => const Post()),
           );
         },
         child: const Icon(Icons.add, color: Colors.white),

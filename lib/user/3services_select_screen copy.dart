@@ -315,7 +315,8 @@ class Home3Screen extends StatelessWidget {
                       img: "assets/pic/22.png",
                       imgHeight: 140,
                       imgWidth: 120,
-                      route: FatchAllimage(), // ✅ replaced onPressed with route
+                      route: FetchAllCategories(), // ✅ replaced onPressed with route
+                      // route: FatchAllimage(), // ✅ replaced onPressed with route
                     ),
                   ),
                   _animatedCard(

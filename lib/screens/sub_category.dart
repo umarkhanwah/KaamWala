@@ -398,7 +398,8 @@ Widget _buildBanner() {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => Home3Screen()),
+          MaterialPageRoute(builder: (_) => FetchAllCategories()),
+          // MaterialPageRoute(builder: (_) => Home3Screen()),
         );
       },
       child: Container(

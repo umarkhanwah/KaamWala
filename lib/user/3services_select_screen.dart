@@ -74,7 +74,8 @@ class Home3Screen extends StatelessWidget {
                       context,
                       title: "Handy man",
                       img: "assets/pic/22.png",
-                      route: FatchAllimage(),
+                      route: FetchAllCategories(),
+                      // route: FatchAllimage(),
                     ),
                   ),
                   _animatedCard(

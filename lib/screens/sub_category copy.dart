@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kam_wala_app/Service_Request/product_list.dart';
 import 'package:kam_wala_app/dashboard/imagedatafatech.dart';
 import 'package:kam_wala_app/image%20crud%20hamdeling/imagedatafatech.dart';
 
@@ -354,7 +355,8 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => FatchAllimage()),
+              MaterialPageRoute(builder: (context) => FetchAllCategories()),
+              // MaterialPageRoute(builder: (context) => ProductListScreennew()),
             );
           },
           child: AnimatedScale(
