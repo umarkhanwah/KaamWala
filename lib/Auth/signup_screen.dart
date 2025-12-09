@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kam_wala_app/dashboard/admin_drawer.dart';
 import 'package:kam_wala_app/screens/wellcomescreen.dart';
 import 'package:kam_wala_app/services/auth_service.dart';
 
@@ -16,8 +17,9 @@ class _SignupScreen1State extends State<SignupScreen1> {
   final _passwordController = TextEditingController();
 
   String _selectedRole = "user"; // default role
+  // final List<String> _roles = ["admin", "worker", "user"];
   final List<String> _roles = ["worker", "user"];
-
+  
   final AuthService _authService = AuthService();
 
   bool _loading = false;

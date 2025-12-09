@@ -239,7 +239,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             _buildParallaxImage(index, size),
-                            const SizedBox(height: 36),
+                            const SizedBox(height: 30),
                             _buildFrostedGlassCard(
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -267,7 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(height: 18),
+                                    const SizedBox(height: 10),
                                     Text(
                                       item['description']!,
                                       textAlign: TextAlign.center,

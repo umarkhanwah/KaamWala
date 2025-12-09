@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:html' as html;
+import 'package:kam_wala_app/services/picker/picker_service.dart';
+// import 'dart:html' as html;
 
 class SalonDataAdd extends StatefulWidget {
   const SalonDataAdd({super.key});
@@ -50,36 +51,49 @@ class _SalonDataAddState extends State<SalonDataAdd> {
     }
   }
 
+  // Future<void> pickImage() async {
+  //   if (kIsWeb) {
+  //     final html.FileUploadInputElement uploadInput =
+  //         html.FileUploadInputElement();
+  //     uploadInput.accept = "image/*";
+  //     uploadInput.click();
+
+  //     uploadInput.onChange.listen((e) async {
+  //       final files = uploadInput.files;
+  //       if (files!.isEmpty) return;
+  //       final reader = html.FileReader();
+
+  //       reader.readAsArrayBuffer(files[0]);
+  //       reader.onLoadEnd.listen((e) async {
+  //         final Uint8List data = reader.result as Uint8List;
+  //         setState(() {
+  //           _uploadedImageBase64 = base64Encode(data);
+  //         });
+  //         Fluttertoast.showToast(msg: "Image selected successfully");
+  //       });
+  //     });
+  //   } else {
+  //     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  //     if (image != null) {
+  //       Uint8List data = await image.readAsBytes();
+  //       setState(() {
+  //         _uploadedImageBase64 = base64Encode(data);
+  //       });
+  //       Fluttertoast.showToast(msg: "Image selected successfully");
+  //     }
+  //   }
+  // }
+
   Future<void> pickImage() async {
-    if (kIsWeb) {
-      final html.FileUploadInputElement uploadInput =
-          html.FileUploadInputElement();
-      uploadInput.accept = "image/*";
-      uploadInput.click();
-
-      uploadInput.onChange.listen((e) async {
-        final files = uploadInput.files;
-        if (files!.isEmpty) return;
-        final reader = html.FileReader();
-
-        reader.readAsArrayBuffer(files[0]);
-        reader.onLoadEnd.listen((e) async {
-          final Uint8List data = reader.result as Uint8List;
-          setState(() {
-            _uploadedImageBase64 = base64Encode(data);
-          });
-          Fluttertoast.showToast(msg: "Image selected successfully");
-        });
+    try {
+      final bytes = await pickerService.pickImageBytes();
+      if (bytes == null) return;
+      setState(() {
+        _uploadedImageBase64 = base64Encode(bytes);
       });
-    } else {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        Uint8List data = await image.readAsBytes();
-        setState(() {
-          _uploadedImageBase64 = base64Encode(data);
-        });
-        Fluttertoast.showToast(msg: "Image selected successfully");
-      }
+      Fluttertoast.showToast(msg: "Image selected successfully");
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Image pick error: $e");
     }
   }
 

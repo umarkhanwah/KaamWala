@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -67,6 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
       body: PageTransitionSwitcher(
         duration: const Duration(milliseconds: 600),
         reverse: false,
@@ -77,6 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   secondaryAnimation: secondaryAnimation,
                   child: child,
                 ),
+
         child: SingleChildScrollView(
           key: const ValueKey("signup"),
           child: Column(
@@ -93,34 +93,80 @@ class _SignupScreenState extends State<SignupScreen> {
                       end: Alignment.bottomRight,
                     ),
                   ),
+
+                  // child: Center(
+                  //   child: Column(
+                  //     mainAxisAlignment: MainAxisAlignment.center,
+                  //     children: [
+                  //       Align(
+                  //         alignment: Alignment.topLeft,
+                  //         child: Padding(
+                  //           padding: const EdgeInsets.only(
+                  //             left: 16.0,
+                  //             top: 16.0,
+                  //           ),
+                  //           child: GestureDetector(
+                  //             onTap: () {
+                  //               Navigator.push(
+                  //                 context,
+                  //                 MaterialPageRoute(
+                  //                   builder: (context) => WelcomeScreen(),
+                  //                 ),
+                  //               );
+                  //             },
+
+                  //             child: const Icon(
+                  //               Icons.arrow_back,
+                  //               color: Colors.yellowAccent,
+
+                  //               size: 35,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //       Image.asset('assets/pic/DRILMAN.png', height: 200),
+                  //       const SizedBox(height: 10),
+                  //       const Text(
+                  //         "Create your Account",
+                  //         style: TextStyle(
+                  //           color: Colors.yellowAccent,
+                  //           fontSize: 24,
+                  //           fontWeight: FontWeight.bold,
+                  //         ),
+                  //       ).animate().fade(delay: 200.ms),
+                  //     ],
+                  //   ),
+                  // ),
                   child: Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment:
+                          MainAxisAlignment.start, // start instead of center
                       children: [
+                        const SizedBox(
+                          height: 80,
+                        ), // <-- Always gives 20px gap from top
                         Align(
                           alignment: Alignment.topLeft,
                           child: Padding(
-                            padding: const EdgeInsets.only(
-                              left: 16.0,
-                              top: 16.0,
-                            ),
+                            padding: const EdgeInsets.only(left: 16.0),
                             child: GestureDetector(
                               onTap: () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => WelcomeScreen(),
+                                    builder: (context) => const WelcomeScreen(),
                                   ),
                                 );
                               },
                               child: const Icon(
                                 Icons.arrow_back,
                                 color: Colors.yellowAccent,
-                                size: 28,
+                                size: 35,
                               ),
                             ),
                           ),
                         ),
+                        const SizedBox(height: 20),
                         Image.asset('assets/pic/DRILMAN.png', height: 200),
                         const SizedBox(height: 10),
                         const Text(

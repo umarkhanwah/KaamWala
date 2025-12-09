@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kam_wala_app/image%20crud%20hamdeling/Worker%20Detail%20recored%20Screen.dart';
+import 'package:kam_wala_app/screens/Worker%20Request%20Page.dart';
+import 'package:kam_wala_app/worker/WorkerPanel.dart';
 import 'token_service.dart';
 
 class WorkerHomePage extends StatelessWidget {
@@ -72,7 +74,9 @@ class WorkerHomePage extends StatelessWidget {
                   MaterialPageRoute(
                     builder:
                         (context) =>
-                            WorkerRecordDetailScreen(workerId: workerId),
+                            //WorkerRecordDetailScreen(workerId: workerId),
+                            // WorkerRequestsPage(workerId: workerId, workerName: workerName, workerPhone: workerPhone),
+                            WorkerPanel(),
                   ),
                 );
               },

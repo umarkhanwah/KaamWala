@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:ui' show ImageFilter;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kam_wala_app/dashboard/token_service.dart';
 import 'package:kam_wala_app/dashboard/worker_home_page.dart';
+import 'package:kam_wala_app/worker/WorkerPanel.dart';
 
 class WorkerRegistrationPage extends StatefulWidget {
   const WorkerRegistrationPage({super.key});
@@ -181,39 +183,132 @@ class _WorkerRegistrationPageState extends State<WorkerRegistrationPage>
             end: Alignment.bottomRight,
           ),
         ),
+
+        // child: BackdropFilter(
+        //   filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        //   child: Stack(
+        //     children: [
+        //       Center(
+        //         child: ShaderMask(
+        //           shaderCallback:
+        //               (rect) => const LinearGradient(
+        //                 colors: [Colors.blueAccent, Colors.lightBlue],
+        //                 begin: Alignment.topLeft,
+        //                 end: Alignment.bottomRight,
+        //               ).createShader(rect),
+        //           child: const Text(
+        //             "Worker Registration",
+        //             style: TextStyle(
+        //               color: Colors.white, // still needed for ShaderMask
+        //               fontSize: 26, // larger & modern
+        //               fontWeight: FontWeight.bold,
+        //               letterSpacing: 1.5, // better spacing
+        //               fontFamily: "Roboto", // modern readable font
+        //               shadows: [
+        //                 Shadow(
+        //                   offset: Offset(2, 2),
+        //                   blurRadius: 4,
+        //                   color: Colors.black26, // soft shadow
+        //                 ),
+        //                 Shadow(
+        //                   offset: Offset(-1, -1),
+        //                   blurRadius: 3,
+        //                   color: Colors.white24, // highlight effect
+        //                 ),
+        //               ],
+        //             ),
+        //           ),
+        //         ),
+        //       ),
+
+        //       // 🔴 Logout button added (top-right corner)
+        //       Positioned(
+        //         top: 8,
+        //         right: 8,
+        //         child: IconButton(
+        //           icon: const Icon(Icons.logout, color: Colors.redAccent),
+        //           onPressed: () async {
+        //             await FirebaseAuth.instance.signOut();
+        //             if (!context.mounted) return;
+        //             Navigator.of(context).pop(); // back to previous screen
+        //           },
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: Center(
-            child: ShaderMask(
-              shaderCallback:
-                  (rect) => const LinearGradient(
-                    colors: [Colors.blueAccent, Colors.lightBlue],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ).createShader(rect),
-              child: const Text(
-                "Worker Registration",
-                style: TextStyle(
-                  color: Colors.white, // still needed for ShaderMask
-                  fontSize: 26, // larger & modern
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.5, // better spacing
-                  fontFamily: "Roboto", // modern readable font
-                  shadows: [
-                    Shadow(
-                      offset: Offset(2, 2),
-                      blurRadius: 4,
-                      color: Colors.black26, // soft shadow
+          child: Stack(
+            children: [
+              Center(
+                child: ShaderMask(
+                  shaderCallback:
+                      (rect) => const LinearGradient(
+                        colors: [Colors.blueAccent, Colors.lightBlue],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ).createShader(rect),
+                  child: const Text(
+                    "Worker Registration",
+                    style: TextStyle(
+                      color: Colors.white, // still needed for ShaderMask
+                      fontSize: 26, // larger & modern
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5, // better spacing
+                      fontFamily: "Roboto", // modern readable font
+                      shadows: [
+                        Shadow(
+                          offset: Offset(2, 2),
+                          blurRadius: 4,
+                          color: Colors.black26, // soft shadow
+                        ),
+                        Shadow(
+                          offset: Offset(-1, -1),
+                          blurRadius: 3,
+                          color: Colors.white24, // highlight effect
+                        ),
+                      ],
                     ),
-                    Shadow(
-                      offset: Offset(-1, -1),
-                      blurRadius: 3,
-                      color: Colors.white24, // highlight effect
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ),
+
+              // 🔴 Logout button (top-right corner)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.redAccent),
+                  onPressed: () async {
+                    await FirebaseAuth.instance.signOut();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pop(); // back to previous screen
+                  },
+                ),
+              ),
+
+              // 🟢 Next page button (top-left corner)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.blueAccent,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder:
+                            (context) =>
+                                WorkerPanel(), // 👉 replace with your next page widget
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -414,103 +509,9 @@ class _WorkerRegistrationPageState extends State<WorkerRegistrationPage>
     );
   }
 
-  void _openQuickActions() {
-    showModalBottomSheet(
-      context: context,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Quick Actions",
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.assignment_add),
-                      label: const Text("Create Task"),
-                      onPressed: () {},
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.picture_as_pdf),
-                      label: const Text("Generate Report"),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.notifications_active_outlined),
-                      label: const Text("Send Alert"),
-                      onPressed: () {},
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.help_outline),
-                      label: const Text("Help Center"),
-                      onPressed: () {},
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF6FAFF),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.blueAccent.withOpacity(0.12),
-                  ),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.stacked_line_chart, color: Colors.blueAccent),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "System Status: All services operational. Response time: ~120ms",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openQuickActions,
-        backgroundColor: Colors.blueAccent,
-        icon: const Icon(Icons.dashboard_customize_outlined),
-        label: const Text("Shortcuts"),
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(

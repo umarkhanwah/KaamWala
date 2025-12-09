@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -24,12 +25,10 @@ class _AdminPanelState extends State<AdminPanel> {
 
     await sendPushNotification(token, status);
 
-    // Save last updated ID for animation flash
     setState(() {
       recentlyUpdatedId = docId;
     });
 
-    // Clear highlight after 1.5 sec
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
@@ -49,7 +48,7 @@ class _AdminPanelState extends State<AdminPanel> {
   Future<void> sendPushNotification(String token, String status) async {
     try {
       debugPrint("Send push to: $token | Status: $status");
-      // Yahan FCM call add karna hoga
+      // TODO: Add FCM push notification logic here
     } catch (e) {
       debugPrint("Push notification error: $e");
     }
@@ -78,12 +77,12 @@ class _AdminPanelState extends State<AdminPanel> {
       ),
       body: Column(
         children: [
-          // Search Bar
+          // 🔍 Search Bar
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Search worker by name or phone",
+                hintText: "Search worker by name, phone or CNIC",
                 prefixIcon: const Icon(Icons.search, color: Colors.blue),
                 filled: true,
                 fillColor: Colors.white,
@@ -121,8 +120,10 @@ class _AdminPanelState extends State<AdminPanel> {
                       final name = (doc["name"] ?? "").toString().toLowerCase();
                       final phone =
                           (doc["phone"] ?? "").toString().toLowerCase();
+                      final cnic = (doc["cnic"] ?? "").toString().toLowerCase();
                       return name.contains(searchQuery) ||
-                          phone.contains(searchQuery);
+                          phone.contains(searchQuery) ||
+                          cnic.contains(searchQuery);
                     }).toList();
 
                 if (docs.isEmpty) {
@@ -142,10 +143,10 @@ class _AdminPanelState extends State<AdminPanel> {
                     final data = doc.data() as Map<String, dynamic>;
                     final name = data["name"] ?? "No Name";
                     final phone = data["phone"] ?? "No Phone";
+                    final cnic = data["cnic"] ?? "No CNIC";
                     final status = data["status"] ?? "Pending";
                     final token = data["fcmToken"] ?? "";
 
-                    // 🔥 Highlight animation color
                     final isUpdated = recentlyUpdatedId == doc.id;
                     final flashColor =
                         status == "Approved"
@@ -187,6 +188,11 @@ class _AdminPanelState extends State<AdminPanel> {
                             const SizedBox(height: 4),
                             Text(
                               "Phone: $phone",
+                              style: const TextStyle(color: Colors.black54),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              "CNIC: $cnic",
                               style: const TextStyle(color: Colors.black54),
                             ),
                             const SizedBox(height: 2),

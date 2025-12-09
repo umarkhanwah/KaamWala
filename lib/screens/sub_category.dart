@@ -1,10 +1,12 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:kam_wala_app/dashboard/imagedatafatech.dart';
-import 'package:kam_wala_app/image%20crud%20hamdeling/imagedatafatech.dart';
-
-import 'package:shimmer/shimmer.dart'; // for blur effect
+import 'package:kam_wala_app/Service_Request/product_list.dart';
+import 'package:kam_wala_app/image crud hamdeling/imagedatafatech.dart';
+import 'package:kam_wala_app/user/3services_select_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class SubCategoryLongScreen extends StatefulWidget {
   const SubCategoryLongScreen({super.key});
@@ -14,20 +16,19 @@ class SubCategoryLongScreen extends StatefulWidget {
 }
 
 class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
-  final int _selectedIndex = 1;
-
   final List<String> serviceImages = [
     'assets/pic/WORKERS.jpg',
-
     'assets/pic/technichian.jpg',
-    'assets/pic/Services Banner.png',
+    'assets/pic/male-plumber.jpg',
   ];
+
+  int _currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      extendBody: true, // for curved navbar overlay
+      extendBody: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -41,281 +42,328 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
             padding: const EdgeInsets.symmetric(vertical: 20),
             child: Column(
               children: [
-                _buildBannerSearch(),
-                const SizedBox(height: 50),
+                _buildBanner(),
+                const SizedBox(height: 40),
                 _buildCarousel(),
                 const SizedBox(height: 30),
                 _buildHeading(),
                 const SizedBox(height: 40),
-                _buildServiceIcons(),
+                _buildServiceGrid(),
                 const SizedBox(height: 50),
                 _buildWhyChooseUs(),
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
                 _buildCallToAction(),
-                // const SizedBox(height: 20),
               ],
             ),
           ),
         ),
       ),
-
-      // 🔥 Modern Curved Bottom Navigation Bar
-      // bottomNavigationBar: _buildCurvedNavBar(),
     );
   }
+TextEditingController _searchController = TextEditingController();
 
-  Widget _buildBannerSearch() {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          height: 180, // Slightly taller for better proportion
-          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(25),
-            image: const DecorationImage(
-              image: AssetImage("assets/pic/male-plumber.jpg"),
+Widget _buildBanner() {
+  return Stack(
+    clipBehavior: Clip.none,
+    children: [
+      ClipRRect(
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+        child: Stack(
+          children: [
+            Image.asset(
+              "assets/pic/Services Banner.png",
+              height: 220,
+              width: double.infinity,
               fit: BoxFit.cover,
-              alignment: Alignment.center,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blue.shade200.withOpacity(0.4),
-                blurRadius: 25,
-                spreadRadius: 2,
-                offset: const Offset(0, 8),
+            Container(
+              height: 220,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Colors.black.withOpacity(0.4), Colors.transparent],
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                ),
               ),
-            ],
-            gradient: LinearGradient(
-              // Soft gradient overlay for premium look
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.15),
-                Colors.transparent,
-                Colors.black.withOpacity(0.15),
-              ],
             ),
-          ),
+            Positioned(
+              bottom: 20,
+              left: 20,
+              child: Text(
+                "Our Services",
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                  shadows: [
+                    Shadow(
+                      blurRadius: 8,
+                      color: Colors.black.withOpacity(0.6),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+
+      // 🔹 Floating Search Bar
+      Positioned(
+        bottom: -30,
+        left: 30,
+        right: 30,
+        child: Material(
+          elevation: 10,
+          borderRadius: BorderRadius.circular(30),
+          shadowColor: Colors.blue.withOpacity(0.3),
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: Stack(
-              children: [
-                // Subtle overlay for text clarity if needed in future
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.black.withOpacity(0.05),
-                        Colors.black.withOpacity(0.2),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
-                // Optional floating tag or title
-                Positioned(
-                  bottom: 15,
-                  left: 15,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
+            borderRadius: BorderRadius.circular(30),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+              ),
+              child: TextField(
+                controller: _searchController,
+                onSubmitted: (query) async {
+                  if (query.isEmpty) return;
+
+                  // 🔹 Firestore query for category
+                  final categorySnap = await FirebaseFirestore.instance
+                      .collection('products')
+                      .where('category', isEqualTo: query)
+                      .get();
+
+                  if (categorySnap.docs.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ProductListScreennew(
+                          category: query,
+                          currentUserId:
+                              FirebaseAuth.instance.currentUser?.uid ?? '',
                         ),
-                      ],
-                    ),
-                    child: Text(
-                      "Special Offers",
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.blue.shade700,
                       ),
-                    ),
+                    );
+                  } else {
+                    // 🔹 Firestore query for service title
+                    final productSnap = await FirebaseFirestore.instance
+                        .collection('products')
+                        .where('name', isEqualTo: query)
+                        .get();
+
+                    if (productSnap.docs.isNotEmpty) {
+                      String category =
+                          productSnap.docs.first['category'].toString();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ProductListScreennew(
+                            category: category,
+                            currentUserId:
+                                FirebaseAuth.instance.currentUser?.uid ?? '',
+                          ),
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("No matching service found")),
+                      );
+                    }
+                  }
+                },
+                decoration: InputDecoration(
+                  hintText: "Search services or categories...",
+                  hintStyle: GoogleFonts.poppins(
+                    color: Colors.grey.shade600,
+                    fontSize: 15,
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Colors.blue),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 14,
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    ],
+  );
+}
 
-        // Positioned(
-        //   bottom: -25,
-        //   left: 40,
-        //   right: 40,
-        //   child: Material(
-        //     elevation: 12, // deeper shadow
-        //     shadowColor: Colors.tealAccent.withOpacity(0.4),
-        //     borderRadius: BorderRadius.circular(40),
-        //     child: ClipRRect(
-        //       borderRadius: BorderRadius.circular(40),
-        //       child: BackdropFilter(
-        //         filter: ImageFilter.blur(
-        //           sigmaX: 15,
-        //           sigmaY: 15,
-        //         ), // blur background
-        //         child: Container(
-        //           decoration: BoxDecoration(
-        //             gradient: LinearGradient(
-        //               colors: [
-        //                 Colors.white.withOpacity(0.85),
-        //                 Colors.white.withOpacity(0.6),
-        //               ],
-        //               begin: Alignment.topLeft,
-        //               end: Alignment.bottomRight,
-        //             ),
-        //             borderRadius: BorderRadius.circular(40),
-        //             border: Border.all(
-        //               color: Colors.teal.withOpacity(0.3), // glow border
-        //               width: 1.5,
-        //             ),
-        //           ),
-        //           child: TextField(
-        //             style: GoogleFonts.poppins(
-        //               fontSize: 15,
-        //               color: Colors.blueGrey.shade900,
-        //               fontWeight: FontWeight.w500,
-        //             ),
-        //             decoration: InputDecoration(
-        //               hintText: "Search services...",
-        //               hintStyle: GoogleFonts.poppins(
-        //                 color: Colors.grey.shade500,
-        //                 fontSize: 15,
-        //               ),
-        //               prefixIcon: AnimatedContainer(
-        //                 duration: const Duration(milliseconds: 200),
-        //                 margin: const EdgeInsets.only(left: 12, right: 8),
-        //                 decoration: BoxDecoration(
-        //                   gradient: LinearGradient(
-        //                     colors: [
-        //                       Colors.teal.withOpacity(0.15),
-        //                       Colors.tealAccent.withOpacity(0.1),
-        //                     ],
-        //                     begin: Alignment.topLeft,
-        //                     end: Alignment.bottomRight,
-        //                   ),
-        //                   shape: BoxShape.circle,
-        //                 ),
-        //                 child: const Icon(
-        //                   Icons.search_rounded,
-        //                   color: Colors.teal,
-        //                   size: 24,
-        //                 ),
-        //               ),
-        //               border: InputBorder.none,
-        //               filled: true,
-        //               fillColor: Colors.transparent, // glass effect
-        //               contentPadding: const EdgeInsets.symmetric(
-        //                 horizontal: 20,
-        //                 vertical: 14,
-        //               ),
-        //             ),
-        //           ),
-        //         ),
-        //       ),
-        //     ),
-        //   ),
-        // ),
+ // 🔹 Hero Banner with Floating Search Bar
+// Widget _buildBanner() {
+//   return Stack(
+//     clipBehavior: Clip.none,
+//     children: [
+//       ClipRRect(
+//         borderRadius: const BorderRadius.only(
+//           bottomLeft: Radius.circular(40),
+//           bottomRight: Radius.circular(40),
+//         ),
+//         child: Stack(
+//           children: [
+//             Image.asset(
+//               "assets/pic/Services Banner.png",
+//               height: 220,
+//               width: double.infinity,
+//               fit: BoxFit.cover,
+//             ),
+//             Container(
+//               height: 220,
+//               decoration: BoxDecoration(
+//                 gradient: LinearGradient(
+//                   colors: [Colors.black.withOpacity(0.4), Colors.transparent],
+//                   begin: Alignment.bottomCenter,
+//                   end: Alignment.topCenter,
+//                 ),
+//               ),
+//             ),
+//             Positioned(
+//               bottom: 20,
+//               left: 20,
+//               child: Text(
+//                 "Our Services",
+//                 style: GoogleFonts.poppins(
+//                   color: Colors.white,
+//                   fontSize: 26,
+//                   fontWeight: FontWeight.bold,
+//                   shadows: [
+//                     Shadow(
+//                       blurRadius: 8,
+//                       color: Colors.black.withOpacity(0.6),
+//                     )
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+
+//       // 🔹 Floating Glassmorphism Search Bar
+//       Positioned(
+//         bottom: -30,
+//         left: 30,
+//         right: 30,
+//         child: Material(
+//           elevation: 10,
+//           borderRadius: BorderRadius.circular(30),
+//           shadowColor: Colors.blue.withOpacity(0.3),
+//           child: ClipRRect(
+//             borderRadius: BorderRadius.circular(30),
+//             child: Container(
+//               decoration: BoxDecoration(
+//                 color: Colors.white.withOpacity(0.7),
+//                 border: Border.all(
+//                   color: Colors.white.withOpacity(0.4),
+//                   width: 1,
+//                 ),
+//               ),
+//               child: TextField(
+//                 style: GoogleFonts.poppins(
+//                   fontSize: 15,
+//                   color: Colors.blueGrey.shade900,
+//                   fontWeight: FontWeight.w500,
+//                 ),
+//                 decoration: InputDecoration(
+//                   hintText: "Search services...",
+//                   hintStyle: GoogleFonts.poppins(
+//                     color: Colors.grey.shade600,
+//                     fontSize: 15,
+//                   ),
+//                   prefixIcon: const Icon(Icons.search, color: Colors.blue),
+//                   border: InputBorder.none,
+//                   contentPadding: const EdgeInsets.symmetric(
+//                     horizontal: 20,
+//                     vertical: 14,
+//                   ),
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ),
+//       ),
+//     ],
+//   );
+// }
+
+  // 🔹 Carousel with Dots
+  Widget _buildCarousel() {
+    return Column(
+      children: [
+        CarouselSlider(
+          options: CarouselOptions(
+            height: 200,
+            autoPlay: true,
+            enlargeCenterPage: true,
+            viewportFraction: 0.85,
+            onPageChanged: (index, reason) {
+              setState(() => _currentIndex = index);
+            },
+          ),
+          items: serviceImages.map((imagePath) {
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(imagePath, fit: BoxFit.cover, width: 1000),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(serviceImages.length, (index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              width: _currentIndex == index ? 10 : 8,
+              height: _currentIndex == index ? 10 : 8,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentIndex == index
+                    ? Colors.blue
+                    : Colors.blue.withOpacity(0.3),
+              ),
+            );
+          }),
+        ),
       ],
     );
   }
 
-  Widget _buildCarousel() {
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: 200,
-        autoPlay: true,
-        enlargeCenterPage: true,
-        viewportFraction: 0.85,
-        autoPlayInterval: const Duration(seconds: 3),
-      ),
-      items:
-          serviceImages.map((imagePath) {
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              margin: const EdgeInsets.symmetric(horizontal: 5),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blueGrey.withOpacity(0.25),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
-              ),
-            );
-          }).toList(),
-    );
-  }
-
+  // 🔹 Heading with shimmer
   Widget _buildHeading() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          // Text(
-          //   "Explore Our Premium Services",
-          //   style: GoogleFonts.poppins(
-          //     fontSize: 28,
-          //     fontWeight: FontWeight.bold,
-          //     color: Colors.blueGrey.shade900,
-          //     letterSpacing: 1.2,
-          //   ),
-          //   textAlign: TextAlign.center,
-          // ),
           Shimmer.fromColors(
-            // baseColor: Colors.blueGrey.shade900,
             baseColor: Colors.lightBlueAccent.shade100,
             highlightColor: Colors.blueGrey.shade900,
-            period: const Duration(seconds: 2), // smooth speed
             child: Text(
-              " Explore Our Premium Services",
+              "Explore Our Premium Services",
               style: GoogleFonts.poppins(
-                fontSize: 30,
+                fontSize: 28,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.5,
-                height: 1.3,
-                shadows: [
-                  Shadow(
-                    color: Colors.blueGrey.shade200.withOpacity(0.6),
-                    blurRadius: 8,
-                    offset: const Offset(1, 2),
-                  ),
-                ],
+                letterSpacing: 1.2,
               ),
               textAlign: TextAlign.center,
             ),
           ),
-
           const SizedBox(height: 10),
-
           Text(
             "From plumbing and AC repair to deep cleaning — we bring trust, skill, and care to your doorstep.",
             style: GoogleFonts.openSans(
-              fontSize: 17,
+              fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: Colors.grey.shade800.withOpacity(0.9),
+              color: Colors.grey.shade800,
               height: 1.6,
-              letterSpacing: 0.3,
             ),
             textAlign: TextAlign.center,
           ),
@@ -324,178 +372,100 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
     );
   }
 
-  Widget _buildServiceIcons() {
+  // 🔹 Services Grid
+  Widget _buildServiceGrid() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: GridView.count(
-        crossAxisCount: 1,
+        crossAxisCount: 2,
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        mainAxisSpacing: 18,
-        crossAxisSpacing: 18,
-        childAspectRatio: 2.5, // ✅ box ko slim aur modern banaya
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.9,
         children: [
-          _buildImageCard(
-            "assets/pic/user profile.jpg",
-            "View & Book All Services",
-          ),
+          _buildServiceCard("assets/pic/male-plumber.jpg", "Plumbing"),
+          _buildServiceCard("assets/pic/technichian.jpg", "Technicians"),
+          _buildServiceCard("assets/pic/WORKERS.jpg", "Workers"),
+          _buildServiceCard("assets/pic/user profile.jpg", "View All"),
         ],
       ),
     );
   }
 
-  Widget _buildImageCard(String imagePath, String title) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        double scale = 1.0;
-        return GestureDetector(
-          onTapDown: (_) => setState(() => scale = 0.95),
-          onTapUp: (_) => setState(() => scale = 1.0),
-          onTapCancel: () => setState(() => scale = 1.0),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => FatchAllimage()),
-            );
-          },
-          child: AnimatedScale(
-            scale: scale,
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOutBack,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade50, Colors.white],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blue.withOpacity(0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.horizontal(
-                      left: Radius.circular(18),
-                    ),
-                    child: Image.asset(
-                      imagePath,
-                      height: double.infinity, // ✅ image full height
-                      width: 150, // ✅ fix width for modern look
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child:
-                    // Text(
-                    //   title,
-                    //   style: GoogleFonts.poppins(
-                    //     fontSize: 18,
-                    //     fontWeight: FontWeight.w600,
-                    //     color: Colors.cyanAccent,
-                    //   ),
-                    // ),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                        foreground:
-                            Paint()
-                              ..shader = const LinearGradient(
-                                colors: <Color>[
-                                  Color(0xFF00C9FF),
-                                  Color.fromARGB(255, 8, 8, 8),
-                                ],
-                              ).createShader(
-                                const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                              ),
-                        shadows: [
-                          Shadow(
-                            blurRadius: 8,
-                            color: Colors.black.withOpacity(0.25),
-                            offset: const Offset(2, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios,
-                    size: 18,
-                    color: Colors.blueGrey,
-                  ),
-                  const SizedBox(width: 12),
-                ],
-              ),
-            ),
-          ),
+  Widget _buildServiceCard(String imagePath, String title) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => Home3Screen()),
         );
       },
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+          gradient: LinearGradient(
+            colors: [Colors.white, Colors.blue.shade50],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: ClipRRect(
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(18)),
+                child: Image.asset(imagePath,
+                    fit: BoxFit.cover, width: double.infinity),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blueGrey.shade900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
+  // 🔹 Why Choose Us
   Widget _buildWhyChooseUs() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // ✨ Animated Heading
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 800),
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.translate(
-                  offset: Offset(0, (1 - value) * -20),
-                  child: child,
-                ),
-              );
-            },
-            child: Text(
-              "Why Choose Us?",
-              style: GoogleFonts.poppins(
-                fontSize: 28,
-                fontWeight: FontWeight.w800,
-                color: Colors.blue.shade700,
-                letterSpacing: 1.2,
-              ),
+          Text(
+            "Why Choose Us?",
+            style: GoogleFonts.poppins(
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              color: Colors.blue.shade700,
             ),
           ),
-
           const SizedBox(height: 20),
-
-          _buildInfoPoint(
-            Icons.verified_rounded,
-            "Verified & Experienced Professionals",
-          ),
-          _buildInfoPoint(
-            Icons.schedule_rounded,
-            "Instant Booking & On-time Service",
-          ),
-          _buildInfoPoint(
-            Icons.attach_money_rounded,
-            "Transparent Pricing & Support",
-          ),
-          _buildInfoPoint(
-            Icons.emoji_emotions_rounded,
-            "Satisfaction Guaranteed",
-          ),
-
+          _buildInfoPoint(Icons.verified, "Verified & Experienced Professionals", 0),
+          _buildInfoPoint(Icons.schedule, "Instant Booking & On-time Service", 200),
+          _buildInfoPoint(Icons.attach_money, "Transparent Pricing & Support", 400),
+          _buildInfoPoint(Icons.emoji_emotions, "Satisfaction Guaranteed", 600),
           const SizedBox(height: 25),
-
-          // 🌟 Stats Card with Gradient & Glow
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -527,42 +497,40 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
     );
   }
 
-  Widget _buildInfoPoint(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.blue.shade100, Colors.blue.shade50],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.15),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
+  Widget _buildInfoPoint(IconData icon, String text, int delay) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: Duration(milliseconds: 600 + delay),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, (1 - value) * 20),
+            child: child,
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              child: Icon(icon, color: Colors.blue.shade700),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                text,
+                style: GoogleFonts.openSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade800,
                 ),
-              ],
-            ),
-            child: Icon(icon, color: Colors.blue.shade700, size: 22),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: GoogleFonts.openSans(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey.shade800,
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -570,83 +538,25 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
   Widget _buildStat(String value, String label) {
     return Column(
       children: [
-        // Small pop-in animation for numbers
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 600),
-          builder: (context, scale, child) {
-            return Transform.scale(scale: scale, child: child);
-          },
-          child: Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue.shade800,
-            ),
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue.shade800,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.openSans(
-            fontSize: 13,
-            color: Colors.grey.shade600,
-          ),
-        ),
+        Text(label,
+            style: GoogleFonts.openSans(fontSize: 13, color: Colors.grey.shade600)),
       ],
     );
   }
 
-  // Existing Why Choose Us stays same above...
-
-  Widget _buildFeatureCard(IconData icon, String title) {
-    return Container(
-      width: 180,
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 600),
-            builder: (context, value, child) {
-              return Transform.scale(scale: value, child: child);
-            },
-            child: Icon(icon, size: 32, color: Colors.blue.shade700),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.openSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  //new
-
-  // 🔹 NEW Stylish Closing Section: Call to Action
+  // 🔹 Call To Action
   Widget _buildCallToAction() {
     return Container(
-      margin: const EdgeInsets.only(top: 30, bottom: 20),
+      margin: const EdgeInsets.only(top: 20, bottom: 20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -664,25 +574,14 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          TweenAnimationBuilder<double>(
-            tween: Tween(begin: 0, end: 1),
-            duration: const Duration(milliseconds: 800),
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: Transform.scale(scale: value, child: child),
-              );
-            },
-            child: Text(
-              "Experience the Best Service Today!",
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+          Text(
+            "Experience the Best Service Today!",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
           const SizedBox(height: 12),
@@ -697,21 +596,21 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
           const SizedBox(height: 20),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.blue.shade700,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              backgroundColor: Colors.white.withOpacity(0.2),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
-              elevation: 4,
+              elevation: 0,
             ),
-            onPressed: () {
-              // TODO: Add navigation or action
-            },
-            icon: const Icon(Icons.arrow_forward_rounded),
+            onPressed: () {},
+            icon: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
             label: Text(
               "Get Started",
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
         ],

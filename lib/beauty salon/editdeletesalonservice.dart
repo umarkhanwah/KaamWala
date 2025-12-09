@@ -323,13 +323,14 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' as html; // safe: guarded by kIsWeb
+// import 'dart:html' as html; // safe: guarded by kIsWeb
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:kam_wala_app/services/picker/picker_service.dart';
 
 // import 'package:kam_wala_app/dashboard/admin_drawer.dart'; // uncomment if you have it
 
@@ -675,37 +676,46 @@ class _FatchAllSalonState extends State<FatchAllSalon> {
     );
   }
 
-  Future<String?> _pickImageBase64() async {
-    try {
-      if (kIsWeb) {
-        final input = html.FileUploadInputElement()..accept = 'image/*';
-        input.click();
-        final c = Completer<String?>();
-        input.onChange.listen((event) {
-          final file = input.files?.first;
-          if (file == null) return c.complete(null);
-          final reader = html.FileReader();
-          reader.readAsArrayBuffer(file);
-          reader.onLoadEnd.listen((e) {
-            final data = reader.result as Uint8List;
-            c.complete(base64Encode(data));
-          });
-        });
-        return c.future;
-      } else {
-        final XFile? image = await _picker.pickImage(
-          source: ImageSource.gallery,
-        );
-        if (image == null) return null;
-        final bytes = await image.readAsBytes();
-        return base64Encode(bytes);
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "Image pick error: $e");
-      return null;
-    }
+  // Future<String?> _pickImageBase64() async {
+  //   try {
+  //     if (kIsWeb) {
+  //       final input = html.FileUploadInputElement()..accept = 'image/*';
+  //       input.click();
+  //       final c = Completer<String?>();
+  //       input.onChange.listen((event) {
+  //         final file = input.files?.first;
+  //         if (file == null) return c.complete(null);
+  //         final reader = html.FileReader();
+  //         reader.readAsArrayBuffer(file);
+  //         reader.onLoadEnd.listen((e) {
+  //           final data = reader.result as Uint8List;
+  //           c.complete(base64Encode(data));
+  //         });
+  //       });
+  //       return c.future;
+  //     } else {
+  //       final XFile? image = await _picker.pickImage(
+  //         source: ImageSource.gallery,
+  //       );
+  //       if (image == null) return null;
+  //       final bytes = await image.readAsBytes();
+  //       return base64Encode(bytes);
+  //     }
+  //   } catch (e) {
+  //     Fluttertoast.showToast(msg: "Image pick error: $e");
+  //     return null;
+  //   }
+  // }
+Future<String?> _pickImageBase64() async {
+  try {
+    final bytes = await pickerService.pickImageBytes();
+    if (bytes == null) return null;
+    return base64Encode(bytes);
+  } catch (e) {
+    Fluttertoast.showToast(msg: "Image pick error: $e");
+    return null;
   }
-
+}
   Future<void> _delete(String id) async {
     try {
       await FirebaseFirestore.instance.collection(kCollection).doc(id).delete();
