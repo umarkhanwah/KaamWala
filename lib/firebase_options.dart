@@ -23,9 +23,15 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
-        return macos;
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for macos - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -41,53 +47,33 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDW-gJv1RhhJDouYfO7O5QpRP2b8gPzvvM',
-    appId: '1:318072354583:web:5fa952cb56df5561836952',
-    messagingSenderId: '318072354583',
-    projectId: 'kam-wala-app',
-    authDomain: 'kam-wala-app.firebaseapp.com',
-    storageBucket: 'kam-wala-app.firebasestorage.app',
-    measurementId: 'G-4WN3R4E3M7',
-    //add this for add post
-    databaseURL: 'https://kam-wala-app-default-rtdb.firebaseio.com',
+    apiKey: 'AIzaSyDvrP0UAggUQuvd8vFTTtdHxFL0eykANXc',
+    appId: '1:421151059964:web:031134a180482cbe1acc79',
+    messagingSenderId: '421151059964',
+    projectId: 'kaam-wala-546a1',
+    authDomain: 'kaam-wala-546a1.firebaseapp.com',
+    databaseURL: 'https://kaam-wala-546a1-default-rtdb.firebaseio.com',
+    storageBucket: 'kaam-wala-546a1.firebasestorage.app',
+    measurementId: 'G-8ZPD55GKVF',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBB6u1Qa7QZlcV5RLoUvzwwp9jZUVUcmSM',
-    appId: '1:318072354583:android:21218d34fe4fe4b6836952',
-    messagingSenderId: '318072354583',
-    projectId: 'kam-wala-app',
-    storageBucket: 'kam-wala-app.firebasestorage.app',
-    databaseURL:
-        'https://kam-wala-app-default-rtdb.firebaseio.com', // ✅ add this
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBMB7aYbwyFEximT1QtyJKMWwwxAoYRUsw',
-    appId: '1:318072354583:ios:2e37c30479050d84836952',
-    messagingSenderId: '318072354583',
-    projectId: 'kam-wala-app',
-    storageBucket: 'kam-wala-app.firebasestorage.app',
-    iosBundleId: 'com.example.kamWalaApp',
-  );
-
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBMB7aYbwyFEximT1QtyJKMWwwxAoYRUsw',
-    appId: '1:318072354583:ios:2e37c30479050d84836952',
-    messagingSenderId: '318072354583',
-    projectId: 'kam-wala-app',
-    storageBucket: 'kam-wala-app.firebasestorage.app',
-    iosBundleId: 'com.example.kamWalaApp',
+    apiKey: 'AIzaSyBalpxypoFrND6o7t90dT1Mol6aft8Yan0',
+    appId: '1:421151059964:android:58a1591775f46b221acc79',
+    messagingSenderId: '421151059964',
+    projectId: 'kaam-wala-546a1',
+    databaseURL: 'https://kaam-wala-546a1-default-rtdb.firebaseio.com',
+    storageBucket: 'kaam-wala-546a1.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDW-gJv1RhhJDouYfO7O5QpRP2b8gPzvvM',
-    appId: '1:318072354583:web:d8eac0e57577dd3c836952',
-    messagingSenderId: '318072354583',
-    projectId: 'kam-wala-app',
-    authDomain: 'kam-wala-app.firebaseapp.com',
-    storageBucket: 'kam-wala-app.firebasestorage.app',
-    measurementId: 'G-8FSPD5ZWEH',
-    //databaseURL: 'https://kam-wala-app.firebaseio.com',
+    apiKey: 'AIzaSyDvrP0UAggUQuvd8vFTTtdHxFL0eykANXc',
+    appId: '1:421151059964:web:5028f08b832f62df1acc79',
+    messagingSenderId: '421151059964',
+    projectId: 'kaam-wala-546a1',
+    authDomain: 'kaam-wala-546a1.firebaseapp.com',
+    databaseURL: 'https://kaam-wala-546a1-default-rtdb.firebaseio.com',
+    storageBucket: 'kaam-wala-546a1.firebasestorage.app',
+    measurementId: 'G-9R4E1JTL09',
   );
 }
