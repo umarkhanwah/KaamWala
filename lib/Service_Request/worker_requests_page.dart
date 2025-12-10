@@ -546,13 +546,13 @@ class _WorkerRequestsPagenewState extends State<WorkerRequestsPagenew> {
                         }
 
                         // Worker Accept
-                        await ProductPage.workerAcceptRequest(
-                          requestId: doc.id,
-                          workerId: widget.workerId,
-                          workerName: widget.workerName,
-                          workerPhone: widget.workerPhone,
-                          eta: value,
-                        );
+                        // await ProductPage.workerAcceptRequest(
+                        //   requestId: doc.id,
+                        //   workerId: widget.workerId,
+                        //   workerName: widget.workerName,
+                        //   workerPhone: widget.workerPhone,
+                        //   eta: value,
+                        // );
 
                         _showModernSnackBar(
                           context,

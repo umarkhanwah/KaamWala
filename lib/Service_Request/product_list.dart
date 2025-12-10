@@ -975,37 +975,184 @@
 // }
 
 
+
+// faltu
+
+// import 'dart:convert';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:flutter/material.dart';
+// import 'package:kam_wala_app/image crud hamdeling/product_model.dart';
+
+// class ProductPage extends StatefulWidget {
+//   final String categoryName; // Only needed for fetching products
+//   final String categoryId;   // Only needed for future if you use it
+//   final String docId;        // Optional (can remove later if unused)
+
+//   // -------------------------------------------
+//   // 🔥 WORKER ACCEPT REQUEST — FINAL VERSION
+//   // -------------------------------------------
+//   static Future<void> workerAcceptRequest({
+//     required String requestId,
+//     required String workerId,
+//     required String workerName,
+//     required String workerPhone,
+//     required String eta,
+//   }) async {
+//     final ref = FirebaseFirestore.instance.collection('requests').doc(requestId);
+
+//     await ref.update({
+//       "status": "accepted",
+//       "acceptedWorkerId": workerId,
+//       "acceptedWorkerName": workerName,
+//       "acceptedWorkerPhone": workerPhone,
+//       "eta": eta,
+//       "acceptedAt": DateTime.now().millisecondsSinceEpoch,
+//     });
+//   }
+
+//   const ProductPage({
+//     super.key,
+//     required this.categoryName,
+//     required this.categoryId,
+//     required this.docId,
+//   });
+
+//   @override
+//   State<ProductPage> createState() => _ProductPageState();
+// }
+
+// class _ProductPageState extends State<ProductPage> {
+//   List<ProductModel> productList = [];
+
+//   /// 🔹 Fetch products in real-time
+//   void fetchProducts() {
+//   FirebaseFirestore.instance
+//       .collection("services")
+//       .where("categoryId", isEqualTo: widget.categoryId)
+//       .snapshots()
+//       .listen((event) {
+//     productList = event.docs
+//         .map((doc) => ProductModel.fromJson(doc.data()))
+//         .toList();
+
+//     setState(() {});
+//   });
+// }
+
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     fetchProducts(); // No category fetch needed
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         flexibleSpace: Container(
+//           decoration: const BoxDecoration(
+//             gradient: LinearGradient(
+//               colors: [Color(0xff2193b0), Color(0xff6dd5ed)],
+//               begin: Alignment.topLeft,
+//               end: Alignment.bottomRight,
+//             ),
+//           ),
+//         ),
+//         title: Text(
+//           widget.categoryName, // DIRECTLY USE PASSED NAME
+//           style: const TextStyle(
+//             fontWeight: FontWeight.bold,
+//             color: Colors.white,
+//             fontSize: 20,
+//             letterSpacing: 1.2,
+//           ),
+//         ),
+//         centerTitle: true,
+//         elevation: 6,
+//       ),
+
+//       body: productList.isEmpty
+//           ? const Center(
+//               child: Text(
+//                 "No product found",
+//                 style: TextStyle(color: Colors.grey),
+//               ),
+//             )
+//           : ListView.builder(
+//               itemCount: productList.length,
+//               itemBuilder: (context, index) {
+//                 final product = productList[index];
+
+//                 return Container(
+//                   padding: const EdgeInsets.all(10),
+//                   decoration: const BoxDecoration(
+//                     border: Border(
+//                       bottom: BorderSide(color: Colors.grey),
+//                     ),
+//                   ),
+//                   child: Row(
+//                     children: [
+//                         ClipRRect(
+//                           borderRadius: BorderRadius.circular(10),
+//                           child: Image.memory(
+//                             base64Decode(product.img),
+//                             height: 80,
+//                             width: 80,
+//                             fit: BoxFit.cover,
+//                           ),
+//                         ),
+//                       const SizedBox(width: 10),
+//                       Expanded(
+//                         child: Column(
+//                           crossAxisAlignment: CrossAxisAlignment.start,
+//                           children: [
+//                             Text(
+//                               product.title,
+//                               style: const TextStyle(
+//                                   fontWeight: FontWeight.bold, fontSize: 16),
+//                             ),
+//                             const SizedBox(height: 5),
+//                             Text(
+//                               "PKR: ${product.price}",
+//                               style: const TextStyle(
+//                                 color: Colors.blue,
+//                                 fontWeight: FontWeight.bold,
+//                                 fontSize: 15,
+//                               ),
+//                             ),
+//                             const SizedBox(height: 5),
+//                             Text(
+//                               product.des,
+//                               maxLines: 2,
+//                               overflow: TextOverflow.ellipsis,
+//                               style: const TextStyle(color: Colors.grey),
+//                             ),
+//                           ],
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 );
+//               },
+//             ),
+//     );
+//   }
+// }
+
+// product_page_with_waiting_and_request.dart
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:kam_wala_app/image crud hamdeling/product_model.dart';
+import 'package:kam_wala_app/image%20crud%20hamdeling/worker_tracking_page.dart';
 
 class ProductPage extends StatefulWidget {
-  final String categoryName; // Only needed for fetching products
-  final String categoryId;   // Only needed for future if you use it
-  final String docId;        // Optional (can remove later if unused)
-
-  // -------------------------------------------
-  // 🔥 WORKER ACCEPT REQUEST — FINAL VERSION
-  // -------------------------------------------
-  static Future<void> workerAcceptRequest({
-    required String requestId,
-    required String workerId,
-    required String workerName,
-    required String workerPhone,
-    required String eta,
-  }) async {
-    final ref = FirebaseFirestore.instance.collection('requests').doc(requestId);
-
-    await ref.update({
-      "status": "accepted",
-      "acceptedWorkerId": workerId,
-      "acceptedWorkerName": workerName,
-      "acceptedWorkerPhone": workerPhone,
-      "eta": eta,
-      "acceptedAt": DateTime.now().millisecondsSinceEpoch,
-    });
-  }
+  final String categoryName;
+  final String categoryId;
+  final String docId;
 
   const ProductPage({
     super.key,
@@ -1021,26 +1168,86 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage> {
   List<ProductModel> productList = [];
 
-  /// 🔹 Fetch products in real-time
-  void fetchProducts() {
-  FirebaseFirestore.instance
-      .collection("services")
-      .where("categoryId", isEqualTo: widget.categoryId)
-      .snapshots()
-      .listen((event) {
-    productList = event.docs
-        .map((doc) => ProductModel.fromJson(doc.data()))
-        .toList();
-
-    setState(() {});
-  });
-}
-
-
   @override
   void initState() {
     super.initState();
-    fetchProducts(); // No category fetch needed
+    fetchProducts();
+  }
+
+  void fetchProducts() {
+    FirebaseFirestore.instance
+        .collection("services") // or "products" depending on your DB
+        .where("categoryId", isEqualTo: widget.categoryId)
+        .snapshots()
+        .listen((event) {
+      productList = event.docs
+          .map((doc) {
+            final data = doc.data();
+            // adapt constructor names as per your model
+            return ProductModel.fromJson(data);
+          })
+          .toList();
+      setState(() {});
+    });
+  }
+
+  /// ---------- CREATE REQUEST ----------
+  /// creates request doc and returns created doc id
+  Future<String> createRequest(ProductModel service) async {
+    final user = FirebaseAuth.instance.currentUser;
+    final requestsRef = FirebaseFirestore.instance.collection('requests');
+
+    // find nearby workers (collect their IDs) — adapt query if you store worker categories differently
+    final workersSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('role', isEqualTo: 'worker')
+        .where('categoryId', isEqualTo: widget.categoryId)
+        .get();
+
+    final nearbyWorkerIds = workersSnapshot.docs.map((d) => d.id).toList();
+
+    final docRef = requestsRef.doc(); // new id
+    final now = FieldValue.serverTimestamp();
+
+    final payload = {
+      'requestId': docRef.id,
+      'userId': user?.uid ?? '',
+      'serviceName': service.title, // adapt field names if needed
+      // 'serviceId': service.id ?? '', // if you store id
+      'description': service.des,
+      'charges': service.price,
+      'categoryId': widget.categoryId,
+      'categoryName': widget.categoryName,
+      'status': 'pending',
+      'nearbyWorkers': nearbyWorkerIds,
+      'createdAt': now,
+      // optionally add user's location if available
+    };
+
+    await docRef.set(payload);
+    return docRef.id;
+  }
+
+  void _onBookNow(ProductModel service) async {
+    try {
+      // navigate to waiting screen immediately (optimistic UX) while creating request
+      // show waiting page and then create the request and pass requestId into it
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => WaitingForWorkerScreen(
+            service: service,
+            categoryId: widget.categoryId,
+            createRequestFuture: createRequest(service),
+          ),
+        ),
+      );
+    } catch (e) {
+      // fallback
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to start request: $e')),
+      );
+    }
   }
 
   @override
@@ -1057,7 +1264,7 @@ class _ProductPageState extends State<ProductPage> {
           ),
         ),
         title: Text(
-          widget.categoryName, // DIRECTLY USE PASSED NAME
+          widget.categoryName,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -1068,71 +1275,211 @@ class _ProductPageState extends State<ProductPage> {
         centerTitle: true,
         elevation: 6,
       ),
-
       body: productList.isEmpty
-          ? const Center(
-              child: Text(
-                "No product found",
-                style: TextStyle(color: Colors.grey),
-              ),
-            )
+          ? const Center(child: Text("No products found"))
           : ListView.builder(
               itemCount: productList.length,
+              padding: const EdgeInsets.all(12),
               itemBuilder: (context, index) {
                 final product = productList[index];
-
-                return Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.grey),
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  shape:
+                      RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(12),
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: product.img.isNotEmpty
+                          ? Image.memory(
+                              base64Decode(product.img),
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            )
+                          : Container(
+                              width: 80,
+                              height: 80,
+                              color: Colors.blue.shade100,
+                              child: const Icon(Icons.image),
+                            ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: Image.memory(
-                            base64Decode(product.img),
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.title,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              "PKR: ${product.price}",
-                              style: const TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              product.des,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    title: Text(product.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Text(product.des, maxLines: 2, overflow: TextOverflow.ellipsis),
+                    trailing: ElevatedButton(
+                      onPressed: () => _onBookNow(product),
+                      child: const Text("Book Now"),
+                      style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+                    ),
                   ),
                 );
               },
             ),
+    );
+  }
+}
+
+/// Waiting screen — full page (prevents overflow dialogs)
+/// - accepts a future that creates the request; shows loading + request id when available
+/// - listens to the request doc; when status becomes "accepted", navigates to WorkerTrackingPage
+class WaitingForWorkerScreen extends StatefulWidget {
+  final ProductModel service;
+  final String categoryId;
+  final Future<String> createRequestFuture;
+
+  const WaitingForWorkerScreen({
+    super.key,
+    required this.service,
+    required this.categoryId,
+    required this.createRequestFuture,
+  });
+
+  @override
+  State<WaitingForWorkerScreen> createState() => _WaitingForWorkerScreenState();
+}
+
+class _WaitingForWorkerScreenState extends State<WaitingForWorkerScreen> {
+  String? _requestId;
+  StreamSubscription<DocumentSnapshot>? _sub;
+  bool _failed = false;
+  String _message = "Waiting for worker to respond...";
+
+  @override
+  void initState() {
+    super.initState();
+    _start();
+  }
+
+  void _start() async {
+    try {
+      setState(() {
+        _message = "Creating request...";
+      });
+      final requestId = await widget.createRequestFuture;
+      setState(() {
+        _requestId = requestId;
+        _message = "Notifying nearby workers...";
+      });
+
+      // listen to request doc for status changes
+      _sub = FirebaseFirestore.instance
+          .collection('requests')
+          .doc(requestId)
+          .snapshots()
+          .listen((docSnap) {
+        if (!docSnap.exists) return;
+        final data = docSnap.data() as Map<String, dynamic>;
+        final status = data['status'] as String? ?? 'pending';
+
+        // if accepted, get worker details and navigate to tracking
+        if (status == 'accepted' || status == 'continue') {
+          final workerId = data['workerId'] as String? ?? '';
+          final workerName = data['workerName'] as String? ?? '';
+          final workerPhone = data['workerPhone'] as String? ?? '';
+          final eta = data['eta']?.toString() ?? '';
+          final serviceName = data['serviceName']?.toString() ?? widget.service.title;
+          final charges = data['charges']?.toString() ?? widget.service.price;
+
+          // cancel subscription before navigation
+          _sub?.cancel();
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => WorkerTrackingPage(
+                workerId: workerId,
+                workerName: workerName,
+                workerPhone: workerPhone,
+                eta: eta,
+                serviceName: serviceName,
+                charges: charges,
+              ),
+            ),
+          );
+        } else if (status == 'rejected') {
+          setState(() {
+            _message = "No worker accepted. Try again.";
+          });
+          // optionally navigate back after short delay
+        } else {
+          // still pending - keep showing
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _failed = true;
+        _message = "Failed to create request: $e";
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // full screen waiting UI to avoid overflow dialogs
+      appBar: AppBar(
+        title: const Text("Waiting..."),
+        centerTitle: true,
+        backgroundColor: Colors.blue.shade700,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!_failed) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 140,
+                  width: 140,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      CircularProgressIndicator(strokeWidth: 6),
+                      const Icon(Icons.hourglass_top, size: 48, color: Colors.blue),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  _message,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 14),
+                if (_requestId != null) SelectableText("Request ID: $_requestId"),
+                const SizedBox(height: 22),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // cancel and go back
+                    _sub?.cancel();
+                    Navigator.pop(context);
+                  },
+                  icon: const Icon(Icons.cancel),
+                  label: const Text("Cancel Request"),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                ),
+              ] else ...[
+                Icon(Icons.error_outline, size: 60, color: Colors.red.shade700),
+                const SizedBox(height: 12),
+                Text(_message, textAlign: TextAlign.center),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Back"),
+                ),
+              ]
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
