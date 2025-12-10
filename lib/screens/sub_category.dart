@@ -138,37 +138,56 @@ Widget _buildBanner() {
                       .get();
 
                   if (categorySnap.docs.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductListScreennew(
-                          category: query,
-                          currentUserId:
-                              FirebaseAuth.instance.currentUser?.uid ?? '',
-                        ),
-                      ),
-                    );
-                  } else {
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (_) => ProductListScreennew(
+                    //       category: query,
+                    //       currentUserId:
+                    //           FirebaseAuth.instance.currentUser?.uid ?? '',
+                    //     ),
+                    //   ),
+                    // );
+                  }
+                  
+                   else {
                     // 🔹 Firestore query for service title
                     final productSnap = await FirebaseFirestore.instance
                         .collection('products')
                         .where('name', isEqualTo: query)
                         .get();
 
+                    // if (productSnap.docs.isNotEmpty) {
+                    //   String category =
+                    //       productSnap.docs.first['category'].toString();
+                    //   Navigator.push(
+                    //     context,
+                    //     MaterialPageRoute(
+                    //       builder: (_) => ProductPage(
+                    //         categoryName: category,
+                    //         currentUserId:
+                    //             FirebaseAuth.instance.currentUser?.uid ?? '',
+                    //       ),
+                    //     ),
+                    //   );
+                    // } 
+
                     if (productSnap.docs.isNotEmpty) {
-                      String category =
-                          productSnap.docs.first['category'].toString();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ProductListScreennew(
-                            category: category,
-                            currentUserId:
-                                FirebaseAuth.instance.currentUser?.uid ?? '',
-                          ),
-                        ),
-                      );
-                    } else {
+  final doc = productSnap.docs.first;
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ProductPage(
+        categoryName: doc['category'].toString(),
+        docId: doc.id,
+        categoryId: doc['categoryId'].toString(),   // ⭐ IMPORTANT
+      ),
+    ),
+  );
+}
+
+                    else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text("No matching service found")),

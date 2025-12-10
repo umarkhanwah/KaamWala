@@ -138,16 +138,60 @@
 // }
 
 
+// Yeh wala chrome pr nai chlra tha
+// import 'package:flutter/material.dart';
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:kam_wala_app/screens/splashscreen.dart';
+// import 'package:kam_wala_app/firebase_options.dart';
+
+// // ✅ Background messages ko handle karne wala function
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   if (Firebase.apps.isEmpty) {
+//     await Firebase.initializeApp();
+//   }
+//   print("📩 Background message: ${message.notification?.title} - ${message.notification?.body}");
+// }
+
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//  await Firebase.initializeApp(
+//   options: DefaultFirebaseOptions.currentPlatform,
+//  );
+
+
+//   // ✅ Background message handler register
+//   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+//   // ✅ Foreground notifications ke liye settings
+//   FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+//   // iOS/Android dono ke liye permission mangna
+//   await messaging.requestPermission(
+//     alert: true,
+//     badge: true,
+//     sound: true,
+//   );
+
+//   // Token print karwana (debug ke liye)
+//   String? token = await messaging.getToken();
+//   print("🔥 FCM Token: $token");
+
+//   runApp(const MyApp());
+// }
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // <--- Naya Import
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:kam_wala_app/screens/splashscreen.dart';
+import 'package:kam_wala_app/firebase_options.dart'; // Ensure this is present
 
-// ✅ Background messages ko handle karne wala function
+// Background messages ko handle karne wala function
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   }
   print("📩 Background message: ${message.notification?.title} - ${message.notification?.body}");
 }
@@ -155,28 +199,36 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Firebase ek dafa initialize
-  await Firebase.initializeApp();
-
-  // ✅ Background message handler register
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  // ✅ Foreground notifications ke liye settings
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  // iOS/Android dono ke liye permission mangna
-  await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
+  // 1. Firebase Options ke saath Initialize karein
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Token print karwana (debug ke liye)
-  String? token = await messaging.getToken();
-  print("🔥 FCM Token: $token");
+  // 2. Platform check ke saath background handler register karein
+  if (!kIsWeb) { // <--- Yeh Zaroori Hai
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    
+    // 3. Permission aur Token code bhi non-web mein rakhein
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    String? token = await messaging.getToken();
+    print("🔥 FCM Token: $token");
+  } else {
+    // Agar Web ho, toh token/permission ke liye alag method chahiye hota hai, 
+    // lekin abhi hum sirf crash rok rahe hain.
+    print("FCM background handler skipped for Web.");
+  }
+
 
   runApp(const MyApp());
 }
+
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

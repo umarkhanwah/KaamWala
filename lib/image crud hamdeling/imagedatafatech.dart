@@ -337,6 +337,262 @@
 //   }
 // }
 
+
+
+
+// ------------------------------ Yeh bh gaya kaaam se -------------------------------
+// import 'package:cloud_firestore/cloud_firestore.dart';
+// import 'package:firebase_auth/firebase_auth.dart';
+// import 'package:flutter/material.dart';
+// import 'package:google_fonts/google_fonts.dart';
+// import 'package:kam_wala_app/Auth/login_screen.dart';
+// import 'package:kam_wala_app/Service_Request/product_list.dart';
+// import 'package:kam_wala_app/image crud hamdeling/product_list_screen.dart';
+
+// class FetchAllCategories extends StatefulWidget {
+//   const FetchAllCategories({super.key});
+
+//   @override
+//   State<FetchAllCategories> createState() => _FetchAllCategoriesState();
+// }
+
+// class _FetchAllCategoriesState extends State<FetchAllCategories> {
+//   User? currentUser;
+//   String searchQuery = "";
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     currentUser = FirebaseAuth.instance.currentUser;
+//   }
+
+//   /// ✅ Firestore se categories fetch as stream
+//   Stream<QuerySnapshot> fetchCategories() {
+//     return FirebaseFirestore.instance
+//         .collection('categories')
+//         .orderBy('createdAt', descending: true)
+//         .snapshots();
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: AppBar(
+//         leading: const BackButton(color: Colors.black),
+//         title: Text(
+//           "Home Services",
+//           style: GoogleFonts.poppins(
+//             color: Colors.black,
+//             fontWeight: FontWeight.w600,
+//           ),
+//         ),
+//         backgroundColor: Colors.white,
+//         elevation: 0,
+//       ),
+//       body: SafeArea(
+//         child: Column(
+//           children: [
+//             // 🔍 Search bar
+//             Padding(
+//               padding: const EdgeInsets.all(16.0),
+//               child: TextField(
+//                 onChanged: (value) {
+//                   setState(() {
+//                     searchQuery = value.toLowerCase();
+//                   });
+//                 },
+//                 decoration: InputDecoration(
+//                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
+//                   hintText: "Search categories...",
+//                   filled: true,
+//                   fillColor: Colors.grey.shade100,
+//                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
+//                   border: OutlineInputBorder(
+//                     borderRadius: BorderRadius.circular(28),
+//                     borderSide: BorderSide.none,
+//                   ),
+//                 ),
+//               ),
+//             ),
+
+//             // Heading
+//             Padding(
+//               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+//               child: Align(
+//                 alignment: Alignment.centerLeft,
+//                 child: Text(
+//                   "All Categories",
+//                   style: GoogleFonts.poppins(
+//                     fontSize: 16,
+//                     fontWeight: FontWeight.w600,
+//                     color: Colors.black87,
+//                   ),
+//                 ),
+//               ),
+//             ),
+
+//             // ✅ Category Grid
+//             Expanded(
+//               child: StreamBuilder<QuerySnapshot>(
+//                 stream: fetchCategories(),
+//                 builder: (context, snapshot) {
+//                   if (snapshot.connectionState == ConnectionState.waiting) {
+//                     return const Center(child: CircularProgressIndicator());
+//                   }
+//                   if (snapshot.hasError) {
+//                     return const Center(child: Text("Error fetching data"));
+//                   }
+//                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+//                     return const Center(child: Text("No Categories Found"));
+//                   }
+
+//                   final docs = snapshot.data!.docs;
+
+//                   // 🔍 Search filter
+//                   final filteredDocs = docs.where((doc) {
+//                     final name =
+//                         (doc.data() as Map<String, dynamic>)['name']?.toString().toLowerCase() ??
+//                             '';
+//                     return name.contains(searchQuery);
+//                   }).toList();
+
+//                   if (filteredDocs.isEmpty) {
+//                     return const Center(child: Text("No matching categories found"));
+//                   }
+
+//                   return GridView.builder(
+//                     padding: const EdgeInsets.all(16),
+//                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+//                       crossAxisCount: 3,
+//                       crossAxisSpacing: 16,
+//                       mainAxisSpacing: 16,
+//                       childAspectRatio: 0.9,
+//                     ),
+//                     itemCount: filteredDocs.length,
+//                     itemBuilder: (context, index) {
+//                       final doc = filteredDocs[index];
+//                       final data = doc.data() as Map<String, dynamic>;
+//                       final categoryName = data['name'] ?? 'Unnamed';
+//                       final categoryId = doc.id;
+
+//                       return _buildCategoryCard(categoryName, () {
+//                         if (currentUser != null) {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                               builder: (_) => ProductPage(
+//                                 categoryName: categoryId, // 👈 send ID not name
+//                                  docId: doc.id,
+//         categoryId: doc['categoryId'].toString(),
+//                               ),
+//                             ),
+//                           );
+//                         } else {
+//                           ScaffoldMessenger.of(context).showSnackBar(
+//                             const SnackBar(content: Text("Please Login First")),
+//                           );
+//                           Future.delayed(const Duration(milliseconds: 300), () {
+//                             Navigator.push(
+//                               context,
+//                               MaterialPageRoute(
+//                                 builder: (_) => const LoginScreen1(),
+//                               ),
+//                             );
+//                           });
+//                         }
+//                       });
+//                     },
+//                   );
+//                 },
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   // 🔹 Category Icon chooser
+//   IconData _getCategoryIcon(String category) {
+//     switch (category.toLowerCase()) {
+//       case "plumbing":
+//       case "plumber":
+//         return Icons.plumbing;
+//       case "electrician":
+//         return Icons.electrical_services;
+//       case "ac repair":
+//       case "ac services":
+//         return Icons.ac_unit;
+//       case "geyser repair":
+//       case "geyser":
+//         return Icons.water_damage_outlined;
+//       case "cleaner":
+//       case "cleaning":
+//         return Icons.cleaning_services;
+//       case "painter":
+//         return Icons.format_paint;
+//       case "carpenter":
+//         return Icons.handyman;
+//       case "handyman":
+//         return Icons.build;
+//       default:
+//         return Icons.miscellaneous_services;
+//     }
+//   }
+
+//   // 🔹 Category Card UI
+//   Widget _buildCategoryCard(String title, VoidCallback onTap) {
+//     return GestureDetector(
+//       onTap: onTap,
+//       child: Container(
+//         decoration: BoxDecoration(
+//           color: Colors.white,
+//           borderRadius: BorderRadius.circular(16),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.black12.withOpacity(0.08),
+//               blurRadius: 6,
+//               offset: const Offset(0, 3),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             Container(
+//               height: 50,
+//               width: 50,
+//               decoration: BoxDecoration(
+//                 color: Colors.blue.shade50,
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
+//               child: Center(
+//                 child: Icon(
+//                   _getCategoryIcon(title),
+//                   size: 28,
+//                   color: Colors.blue,
+//                 ),
+//               ),
+//             ),
+//             const SizedBox(height: 10),
+//             Text(
+//               title,
+//               textAlign: TextAlign.center,
+//               style: GoogleFonts.poppins(
+//                 fontSize: 13,
+//                 fontWeight: FontWeight.w600,
+//                 color: Colors.black87,
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -362,7 +618,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
     currentUser = FirebaseAuth.instance.currentUser;
   }
 
-  /// ✅ Firestore se categories fetch as stream
+  /// Fetch categories as stream
   Stream<QuerySnapshot> fetchCategories() {
     return FirebaseFirestore.instance
         .collection('categories')
@@ -389,7 +645,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
       body: SafeArea(
         child: Column(
           children: [
-            // 🔍 Search bar
+            // Search bar
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: TextField(
@@ -412,7 +668,6 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
               ),
             ),
 
-            // Heading
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Align(
@@ -428,7 +683,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
               ),
             ),
 
-            // ✅ Category Grid
+            // Category Grid
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
                 stream: fetchCategories(),
@@ -445,21 +700,25 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
 
                   final docs = snapshot.data!.docs;
 
-                  // 🔍 Search filter
+                  // Search filter
                   final filteredDocs = docs.where((doc) {
-                    final name =
-                        (doc.data() as Map<String, dynamic>)['name']?.toString().toLowerCase() ??
-                            '';
+                    final name = (doc.data()
+                                as Map<String, dynamic>)['name']
+                            ?.toString()
+                            .toLowerCase() ??
+                        '';
                     return name.contains(searchQuery);
                   }).toList();
 
                   if (filteredDocs.isEmpty) {
-                    return const Center(child: Text("No matching categories found"));
+                    return const Center(
+                        child: Text("No matching categories found"));
                   }
 
                   return GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       crossAxisSpacing: 16,
                       mainAxisSpacing: 16,
@@ -469,6 +728,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
                     itemBuilder: (context, index) {
                       final doc = filteredDocs[index];
                       final data = doc.data() as Map<String, dynamic>;
+
                       final categoryName = data['name'] ?? 'Unnamed';
                       final categoryId = doc.id;
 
@@ -477,17 +737,20 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ProductListScreennew(
-                                category: categoryId, // 👈 send ID not name
-                                currentUserId: currentUser!.uid,
+                              builder: (_) => ProductPage(
+                                categoryName: categoryName, // correct
+                                docId: doc.id,             // correct
+                                categoryId: categoryId,    // correct
                               ),
                             ),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Please Login First")),
+                            const SnackBar(
+                                content: Text("Please Login First")),
                           );
-                          Future.delayed(const Duration(milliseconds: 300), () {
+                          Future.delayed(const Duration(milliseconds: 300),
+                              () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -508,7 +771,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
     );
   }
 
-  // 🔹 Category Icon chooser
+  // Icon chooser
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case "plumbing":
@@ -536,7 +799,7 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
     }
   }
 
-  // 🔹 Category Card UI
+  // Category Card UI
   Widget _buildCategoryCard(String title, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
