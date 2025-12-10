@@ -25,32 +25,58 @@
 //       image: data['Image'] ?? '',
 //     );
 //   }
+// // }
+// class ProductModel {
+//   final String id;
+//   final String title;
+//   final String des;
+//   final String price;
+//   final String category;
+//   final String img;
+
+//   ProductModel({
+//     required this.id,
+//     required this.title,
+//     required this.des,
+//     required this.price,
+//     required this.category,
+//     required this.img,
+//   });
+
+//   factory ProductModel.fromJson(Map<String, dynamic> data) {
+//     return ProductModel(
+//       id: data['id'] ?? '',
+//       title: data['title'] ?? '',
+//       des: data['des'] ?? '',
+//       price: data['price'] ?? '',
+//       category: data['categoryName'] ?? '',
+//       img: data['img'] ?? '',
+//     );
+//   }
 // }
 class ProductModel {
-  final String id;
   final String title;
   final String des;
+  final String categoryId;
+  final String categoryName;
   final String price;
-  final String category;
   final String img;
 
   ProductModel({
-    required this.id,
     required this.title,
     required this.des,
-    required this.price,
-    required this.category,
-    required this.img,
+    required this.categoryId,
+    required this.categoryName, required this.price, required this.img,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> data) {
     return ProductModel(
-      id: data['id'] ?? '',
       title: data['title'] ?? '',
-      des: data['des'] ?? '',
-      price: data['price'] ?? '',
-      category: data['categoryName'] ?? '',
-      img: data['img'] ?? '',
+      des: data['description'] ?? '',
+      categoryId: data['categoryId'] ?? '',
+      categoryName: data['categoryName'] ?? '',
+       price: data['price'] ?? '',
+img: data['imageBase64'] ?? '',
     );
   }
 }
