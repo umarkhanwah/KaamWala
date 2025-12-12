@@ -180,62 +180,163 @@
 
 //   runApp(const MyApp());
 // }
-
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; // <--- Naya Import
+import 'package:flutter/foundation.dart'; 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:kam_wala_app/screens/splashscreen.dart';
-import 'package:kam_wala_app/firebase_options.dart'; // Ensure this is present
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-// Background messages ko handle karne wala function
+import 'package:kam_wala_app/screens/splashscreen.dart';
+import 'package:kam_wala_app/firebase_options.dart';
+
+// 🔥 Your Worker Requests Page
+import 'package:kam_wala_app/Service_Request/worker_requests_page.dart';
+
+
+// -------------------------------------------------------
+// 🔹 GLOBAL NAVIGATOR KEY (App ko background/terminated me bhi navigate karega)
+// -------------------------------------------------------
+final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
+
+
+// -------------------------------------------------------
+// 🔹 BACKGROUND MESSAGE HANDLER
+// -------------------------------------------------------
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   }
-  print("📩 Background message: ${message.notification?.title} - ${message.notification?.body}");
+
+  print("📩 Background message: ${message.notification?.title}");
 }
 
+
+// -------------------------------------------------------
+// 🔥 LOCAL NOTIFICATION PLUGIN
+// -------------------------------------------------------
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+
+// -------------------------------------------------------
+// 🔥 HANDLE NOTIFICATION CLICK (ALL STATES)
+// -------------------------------------------------------
+void handleNotificationClick() {
+  final context = navKey.currentContext;
+  if (context == null) return;
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => WorkerRequestsPagenew(
+        workerId: "123",
+        workerName: "Worker",
+        workerPhone: "03001234567",
+      ),
+    ),
+  );
+}
+
+
+// -------------------------------------------------------
+// 🔥 BACKGROUND TAP HANDLER FOR TERMINATED STATE
+// -------------------------------------------------------
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse response) {
+  handleNotificationClick();
+}
+
+
+// -------------------------------------------------------
+// 🔥 MAIN
+// -------------------------------------------------------
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Firebase Options ke saath Initialize karein
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // 2. Platform check ke saath background handler register karein
-  if (!kIsWeb) { // <--- Yeh Zaroori Hai
+  // ✔ Background handler (Non-Web)
+  if (!kIsWeb) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
-    // 3. Permission aur Token code bhi non-web mein rakhein
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    await messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    String? token = await messaging.getToken();
-    print("🔥 FCM Token: $token");
-  } else {
-    // Agar Web ho, toh token/permission ke liye alag method chahiye hota hai, 
-    // lekin abhi hum sirf crash rok rahe hain.
-    print("FCM background handler skipped for Web.");
   }
 
+  // ✔ Notification Channel setup
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  final InitializationSettings initializationSettings =
+      InitializationSettings(android: initializationSettingsAndroid);
+
+  await flutterLocalNotificationsPlugin.initialize(
+    initializationSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse details) {
+      handleNotificationClick();
+    },
+    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+  );
+
+  // ✔ FCM Permission (Non-web)
+  if (!kIsWeb) {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+    await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    String? token = await messaging.getToken();
+    print("🔥 FCM Token: $token");
+  }
+
+  // ✔ Foreground message listener (Android-style local notification)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    RemoteNotification? notification = message.notification;
+    if (notification != null) {
+      flutterLocalNotificationsPlugin.show(
+        notification.hashCode,
+        notification.title,
+        notification.body,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'high_importance_channel',
+            'High Importance Notifications',
+            importance: Importance.max,
+            priority: Priority.high,
+          ),
+        ),
+      );
+    }
+  });
+
+  // ✔ When user taps notification (app background → open)
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    handleNotificationClick();
+  });
+
+  // ✔ When app is terminated + opened by notification
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null) {
+    Future.delayed(const Duration(milliseconds: 500), () {
+      handleNotificationClick();
+    });
+  }
 
   runApp(const MyApp());
 }
 
 
 
-
+// -------------------------------------------------------
+// 🔥 MAIN APP WIDGET
+// -------------------------------------------------------
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navKey, // VERY IMPORTANT
       debugShowCheckedModeBanner: false,
       title: "Kaam Wala App",
       theme: ThemeData(

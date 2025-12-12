@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -19,6 +20,25 @@ class LoginScreen1 extends StatefulWidget {
 
 class _LoginScreen1State extends State<LoginScreen1>
     with SingleTickerProviderStateMixin {
+
+
+      Future<void> _saveFCMToken(String uid) async {
+  try {
+    String? token = await FirebaseMessaging.instance.getToken();
+
+    if (token != null) {
+      await FirebaseFirestore.instance.collection("users").doc(uid).update({
+        "fcmToken": token,
+        "updatedAt": DateTime.now(),
+      });
+
+      print("🔥 Worker Token Saved: $token");
+    }
+  } catch (e) {
+    print("⚠️ Token Save Error: $e");
+  }
+}
+
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -151,6 +171,8 @@ class _LoginScreen1State extends State<LoginScreen1>
 
       String role = userDoc['role']?.toString().toLowerCase() ?? '';
       print("User Role: $role");
+      await _saveFCMToken(userCred.user!.uid);
+
       _navigateToRoleScreen(role);
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(

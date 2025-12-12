@@ -1146,6 +1146,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:kam_wala_app/Service_Request/send_fcm.dart';
 import 'package:kam_wala_app/image crud hamdeling/product_model.dart';
 import 'package:kam_wala_app/image%20crud%20hamdeling/worker_tracking_page.dart';
 
@@ -1191,42 +1192,174 @@ class _ProductPageState extends State<ProductPage> {
     });
   }
 
-  /// ---------- CREATE REQUEST ----------
-  /// creates request doc and returns created doc id
-  Future<String> createRequest(ProductModel service) async {
-    final user = FirebaseAuth.instance.currentUser;
-    final requestsRef = FirebaseFirestore.instance.collection('requests');
+Future<String> createRequest(ProductModel service) async {
+  final user = FirebaseAuth.instance.currentUser;
+  final reqRef = FirebaseFirestore.instance.collection('requests');
 
-    // find nearby workers (collect their IDs) — adapt query if you store worker categories differently
-    final workersSnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .where('role', isEqualTo: 'worker')
-        .where('categoryId', isEqualTo: widget.categoryId)
+  // ---------------------------------------
+  // STEP 1: Find workers from `workers` collection by category
+  // ---------------------------------------
+  final workersSnapshot = await FirebaseFirestore.instance
+      .collection('workers')
+      .where('categoryId', isEqualTo: widget.categoryId)
+      .get();
+
+  // No worker?
+  if (workersSnapshot.docs.isEmpty) {
+    debugPrint("⚠ No workers found in this category!");
+  }
+
+  // ---------------------------------------
+  // STEP 2: Create request document
+  // ---------------------------------------
+  final docRef = reqRef.doc();
+
+  final payload = {
+    "requestId": docRef.id,
+    "userId": user?.uid ?? "",
+    "serviceName": service.title,
+    "charges": service.price,
+    "description": service.des,
+    "categoryId": widget.categoryId,
+    "status": "pending",
+    "createdAt": FieldValue.serverTimestamp(),
+  };
+
+  await docRef.set(payload);
+
+  // ---------------------------------------
+  // STEP 3: For each worker → find his token via email in USERS collection
+  // ---------------------------------------
+
+  for (var worker in workersSnapshot.docs) {
+    final workerEmail = worker.data()["email"];
+
+    if (workerEmail == null || workerEmail.toString().isEmpty) {
+      continue;
+    }
+
+    // Find matching user document by email
+    final userSnap = await FirebaseFirestore.instance
+        .collection("users")
+        .where("email", isEqualTo: workerEmail)
+        .limit(1)
         .get();
 
-    final nearbyWorkerIds = workersSnapshot.docs.map((d) => d.id).toList();
+    if (userSnap.docs.isEmpty) {
+      debugPrint("⚠ Worker user doc not found for: $workerEmail");
+      continue;
+    }
 
-    final docRef = requestsRef.doc(); // new id
-    final now = FieldValue.serverTimestamp();
+    final workerToken = userSnap.docs.first.data()["token"];
 
-    final payload = {
-      'requestId': docRef.id,
-      'userId': user?.uid ?? '',
-      'serviceName': service.title, // adapt field names if needed
-      // 'serviceId': service.id ?? '', // if you store id
-      'description': service.des,
-      'charges': service.price,
-      'categoryId': widget.categoryId,
-      'categoryName': widget.categoryName,
-      'status': 'pending',
-      'nearbyWorkers': nearbyWorkerIds,
-      'createdAt': now,
-      // optionally add user's location if available
-    };
+    if (workerToken == null || workerToken.toString().isEmpty) {
+      debugPrint("⚠ Worker token empty for: $workerEmail");
+      continue;
+    }
 
-    await docRef.set(payload);
-    return docRef.id;
+    // ---------------------------------------
+    // STEP 4: Send notification
+    // ---------------------------------------
+    await sendPushNotification(
+      token: workerToken,
+      title: "New Job Request",
+      body: "${service.title} — Rs. ${service.price}",
+      data: {
+        "screen": "worker_notifications",
+        "requestId": docRef.id,
+      },
+    );
   }
+
+  return docRef.id;
+}
+
+
+
+// yeh bh bekaar
+// Future<String> createRequest(ProductModel service) async {
+//   final user = FirebaseAuth.instance.currentUser;
+//   final reqRef = FirebaseFirestore.instance.collection('requests');
+
+//   // Step 1: fetch all workers of this category
+//   final workersSnapshot = await FirebaseFirestore.instance
+//       .collection('users')
+//       .where('role', isEqualTo: 'worker')
+//       .where('categoryId', isEqualTo: widget.categoryId)
+//       .get();
+
+//   final docRef = reqRef.doc();
+//   final payload = {
+//     "requestId": docRef.id,
+//     "userId": user?.uid ?? "",
+//     "serviceName": service.title,
+//     "charges": service.price,
+//     "description": service.des,
+//     "categoryId": widget.categoryId,
+//     "status": "pending",
+//     "createdAt": FieldValue.serverTimestamp(),
+//   };
+
+//   // Step 2: save request
+//   await docRef.set(payload);
+
+//   // Step 3: SEND NOTIFICATION TO EACH WORKER
+//   for (var worker in workersSnapshot.docs) {
+//     final data = worker.data();
+//     final workerToken = data["fcmToken"];
+
+//     if (workerToken != null && workerToken.toString().isNotEmpty) {
+//       await sendPushNotification(
+//         token: workerToken,
+//         title: "New Job Request",
+//         body: "${service.title} — Rs. ${service.price}",
+//         data: {
+//           "screen": "worker_notifications",
+//           "requestId": docRef.id,
+//         },
+//       );
+//     }
+//   }
+
+//   return docRef.id;
+// }
+
+  /// ---------- CREATE REQUEST ----------
+  /// creates request doc and returns created doc id
+  // Future<String> createRequest(ProductModel service) async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   final requestsRef = FirebaseFirestore.instance.collection('requests');
+
+  //   // find nearby workers (collect their IDs) — adapt query if you store worker categories differently
+  //   final workersSnapshot = await FirebaseFirestore.instance
+  //       .collection('users')
+  //       .where('role', isEqualTo: 'worker')
+  //       .where('categoryId', isEqualTo: widget.categoryId)
+  //       .get();
+
+  //   final nearbyWorkerIds = workersSnapshot.docs.map((d) => d.id).toList();
+
+  //   final docRef = requestsRef.doc(); // new id
+  //   final now = FieldValue.serverTimestamp();
+
+  //   final payload = {
+  //     'requestId': docRef.id,
+  //     'userId': user?.uid ?? '',
+  //     'serviceName': service.title, // adapt field names if needed
+  //     // 'serviceId': service.id ?? '', // if you store id
+  //     'description': service.des,
+  //     'charges': service.price,
+  //     'categoryId': widget.categoryId,
+  //     'categoryName': widget.categoryName,
+  //     'status': 'pending',
+  //     'nearbyWorkers': nearbyWorkerIds,
+  //     'createdAt': now,
+  //     // optionally add user's location if available
+  //   };
+
+  //   await docRef.set(payload);
+  //   return docRef.id;
+  // }
 
   void _onBookNow(ProductModel service) async {
     try {
