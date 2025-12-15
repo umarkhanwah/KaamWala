@@ -1191,30 +1191,29 @@ class _ProductPageState extends State<ProductPage> {
       setState(() {});
     });
   }
-
 Future<String> createRequest(ProductModel service) async {
   final user = FirebaseAuth.instance.currentUser;
   final reqRef = FirebaseFirestore.instance.collection('requests');
 
   // ---------------------------------------
-  // STEP 1: Find workers from `workers` collection by category
+  // 1️⃣ FETCH WORKERS FROM USERS COLLECTION
   // ---------------------------------------
   final workersSnapshot = await FirebaseFirestore.instance
-      .collection('workers')
+      .collection('users')
+      .where('role', isEqualTo: 'worker')
       .where('categoryId', isEqualTo: widget.categoryId)
       .get();
 
-  // No worker?
   if (workersSnapshot.docs.isEmpty) {
-    debugPrint("⚠ No workers found in this category!");
+    debugPrint("⚠ No workers found for category");
   }
 
   // ---------------------------------------
-  // STEP 2: Create request document
+  // 2️⃣ CREATE REQUEST DOCUMENT
   // ---------------------------------------
   final docRef = reqRef.doc();
 
-  final payload = {
+  await docRef.set({
     "requestId": docRef.id,
     "userId": user?.uid ?? "",
     "serviceName": service.title,
@@ -1223,51 +1222,24 @@ Future<String> createRequest(ProductModel service) async {
     "categoryId": widget.categoryId,
     "status": "pending",
     "createdAt": FieldValue.serverTimestamp(),
-  };
-
-  await docRef.set(payload);
+  });
 
   // ---------------------------------------
-  // STEP 3: For each worker → find his token via email in USERS collection
+  // 3️⃣ SEND NOTIFICATION TO EACH WORKER
   // ---------------------------------------
-
   for (var worker in workersSnapshot.docs) {
-    final workerEmail = worker.data()["email"];
-
-    if (workerEmail == null || workerEmail.toString().isEmpty) {
-      continue;
-    }
-
-    // Find matching user document by email
-    final userSnap = await FirebaseFirestore.instance
-        .collection("users")
-        .where("email", isEqualTo: workerEmail)
-        .limit(1)
-        .get();
-
-    if (userSnap.docs.isEmpty) {
-      debugPrint("⚠ Worker user doc not found for: $workerEmail");
-      continue;
-    }
-
-    final workerToken = userSnap.docs.first.data()["token"];
+    final workerToken = worker.data()["fcmToken"];
 
     if (workerToken == null || workerToken.toString().isEmpty) {
-      debugPrint("⚠ Worker token empty for: $workerEmail");
+      debugPrint("⚠ Worker token missing: ${worker.id}");
       continue;
     }
 
-    // ---------------------------------------
-    // STEP 4: Send notification
-    // ---------------------------------------
-    await sendPushNotification(
+    await sendNotificationToWorker(
       token: workerToken,
       title: "New Job Request",
       body: "${service.title} — Rs. ${service.price}",
-      data: {
-        "screen": "worker_notifications",
-        "requestId": docRef.id,
-      },
+      requestId: docRef.id,
     );
   }
 

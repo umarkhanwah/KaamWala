@@ -121,6 +121,7 @@ dependencies:
   convex_bottom_bar: ^3.2.0
   firebase_storage: ^12.4.10
   image_picker: ^1.1.2
+  googleapis_auth: ^1.6.0
 
   permission_handler: ^12.0.1
 
@@ -193,6 +194,7 @@ flutter:
 
   assets:
     - assets/pic/
+    - assets/service-account.json
 
 
   # To add assets to your application, add an assets section, like this:
