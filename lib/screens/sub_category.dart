@@ -149,7 +149,7 @@
 //                     //   ),
 //                     // );
 //                   }
-                  
+
 //                    else {
 //                     // 🔹 Firestore query for service title
 //                     final productSnap = await FirebaseFirestore.instance
@@ -170,7 +170,7 @@
 //                     //       ),
 //                     //     ),
 //                     //   );
-//                     // } 
+//                     // }
 
 //                     if (productSnap.docs.isNotEmpty) {
 //   final doc = productSnap.docs.first;
@@ -638,10 +638,11 @@
 //     );
 //   }
 // }
-
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:kam_wala_app/image%20crud%20hamdeling/imagedatafatech.dart';
+import 'package:kam_wala_app/user/bussinesformscreen.dart';
 
 class SubCategoryLongScreen extends StatefulWidget {
   const SubCategoryLongScreen({super.key});
@@ -654,47 +655,65 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
   int _currentIndex = 0;
 
   final List<String> banners = [
-    'assets/pic/WORKERS.jpg',
-    'assets/pic/technichian.jpg',
-    'assets/pic/male-plumber.jpg',
+    'assets/pic/front.JPG',
+    'assets/pic/front.JPG',
+    'assets/pic/front.JPG',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xffF3F6FB),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
               /// 🔍 Search Bar
+              /// 🔝 Logo (Top Left - Landscape Friendly)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  height: 58,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(color: Colors.black12, blurRadius: 8),
+                    ],
+                  ),
+                  child: Image.asset(
+                    'assets/pic/Logo.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              /// 🔍 Full Width Search Bar
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                height: 52,
+                height: 54,
+                padding: const EdgeInsets.symmetric(horizontal: 18),
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 8,
-                    )
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: const [
+                    BoxShadow(color: Colors.black12, blurRadius: 10),
                   ],
                 ),
                 child: Row(
                   children: [
                     const Icon(Icons.search, color: Colors.grey),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Text(
                       "Search services or categories...",
                       style: GoogleFonts.poppins(
                         color: Colors.grey,
-                        fontSize: 14,
+                        fontSize: 15,
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -711,16 +730,17 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
                     setState(() => _currentIndex = index);
                   },
                 ),
-                items: banners.map((img) {
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Image.asset(
-                      img,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    ),
-                  );
-                }).toList(),
+                items:
+                    banners.map((img) {
+                      return ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          img,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      );
+                    }).toList(),
               ),
 
               const SizedBox(height: 10),
@@ -736,9 +756,10 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
                     height: 8,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _currentIndex == index
-                          ? Colors.blue
-                          : Colors.blue.withOpacity(0.3),
+                      color:
+                          _currentIndex == index
+                              ? Colors.blue
+                              : Colors.blue.withOpacity(0.3),
                     ),
                   ),
                 ),
@@ -747,68 +768,75 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
               const SizedBox(height: 24),
 
               /// 🔹 Heading
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      "Explore Our Premium\nServices",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.lightBlue,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "From plumbing and AC repair to deep cleaning — we bring trust, skill, and care to your doorstep.",
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.openSans(
-                        fontSize: 14,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
-                  ],
+              Text(
+                "Explore Our Premium\nServices",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.lightBlue,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "From plumbing and AC repair to deep cleaning — we bring trust, skill, and care to your doorstep.",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.openSans(
+                  fontSize: 14,
+                  color: Colors.grey.shade700,
                 ),
               ),
 
               const SizedBox(height: 30),
 
-              /// 🧰 Handyman Card
-              _serviceCard(
-                title: "Handy Man Services",
-                image: 'assets/pic/WORKERS.jpg',
-                color: Colors.blue,
-                icon: Icons.handyman,
-              ),
-
-              const SizedBox(height: 16),
-
-              /// 💄 Beautician (Coming Soon)
-              Stack(
+              /// 🔹 SERVICES (2 UP + 1 DOWN)
+              Row(
                 children: [
-                  _serviceCard(
-                    title: "Beautician",
-                    image: 'assets/pic/user profile.jpg',
-                    color: Colors.pink,
-                    icon: Icons.spa,
-                  ),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black45,
-                        borderRadius: BorderRadius.circular(20),
+                  Expanded(
+                    child: Expanded(
+                      child: _serviceCard(
+                        title: "Handy Man Services",
+                        color: Colors.blue,
+                        icon: Icons.handyman,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const FetchAllCategories(),
+                            ),
+                          );
+                        },
                       ),
-                      child: Center(
-                        child: Text(
-                          "COMING SOON",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.5,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        _serviceCard(
+                          title: "Beautician",
+                          color: Colors.pink,
+                          icon: Icons.spa,
+                          onTap: () {},
+                        ),
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black45,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "COMING SOON",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ],
@@ -816,21 +844,30 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
 
               const SizedBox(height: 16),
 
-              /// 🏢 Business with KaamWala
               Stack(
                 children: [
                   _serviceCard(
                     title: "Business with KaamWala",
-                    image: 'assets/pic/technichian.jpg',
                     color: Colors.deepOrange,
                     icon: Icons.business_center,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BusinessFormScreen(),
+                        ),
+                      );
+                    },
                   ),
+
                   Positioned(
                     top: 12,
                     right: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(20),
@@ -844,9 +881,19 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
+
+              const SizedBox(height: 40),
+
+              /// 🔹 WHY CHOOSE US
+              _buildWhyChooseUs(),
+
+              const SizedBox(height: 30),
+
+              /// 🔹 CALL TO ACTION
+              _buildCallToAction(),
             ],
           ),
         ),
@@ -854,46 +901,181 @@ class _SubCategoryLongScreenState extends State<SubCategoryLongScreen> {
     );
   }
 
-  /// 🔹 Reusable Service Card
+  /// 🔹 SERVICE CARD
+  // Widget _serviceCard({
+  //   required String title,
+  //   required Color color,
+  //   required IconData icon,
+  // }) {
+  //   return Container(
+  //     height: 130,
+  //     decoration: BoxDecoration(
+  //       borderRadius: BorderRadius.circular(20),
+  //       gradient: LinearGradient(
+  //         colors: [color.withOpacity(0.85), color.withOpacity(0.6)],
+  //       ),
+  //       boxShadow: [
+  //         BoxShadow(color: color.withOpacity(0.3), blurRadius: 12),
+  //       ],
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         const SizedBox(width: 16),
+  //         CircleAvatar(
+  //           radius: 28,
+  //           backgroundColor: Colors.white.withOpacity(0.25),
+  //           child: Icon(icon, color: Colors.white, size: 28),
+  //         ),
+  //         const SizedBox(width: 16),
+  //         Expanded(
+  //           child: Text(
+  //             title,
+  //             style: GoogleFonts.poppins(
+  //               fontSize: 18,
+  //               fontWeight: FontWeight.w600,
+  //               color: Colors.white,
+  //             ),
+  //           ),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
   Widget _serviceCard({
     required String title,
-    required String image,
     required Color color,
     required IconData icon,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      height: 130,
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: [color.withOpacity(0.85), color.withOpacity(0.6)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 12,
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          const SizedBox(width: 16),
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.white.withOpacity(0.25),
-            child: Icon(icon, color: Colors.white, size: 28),
+        onTap: onTap,
+        child: Container(
+          height: 130,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.9), color.withOpacity(0.65)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.35),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+          child: Row(
+            children: [
+              const SizedBox(width: 16),
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Colors.white.withOpacity(0.25),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 18,
                 color: Colors.white,
               ),
+              const SizedBox(width: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 🔹 WHY CHOOSE US
+  Widget _buildWhyChooseUs() {
+    return Column(
+      children: [
+        Text(
+          "Why Choose Us?",
+          style: GoogleFonts.poppins(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: Colors.blue,
+          ),
+        ),
+        const SizedBox(height: 20),
+        _info(Icons.verified, "Verified Professionals"),
+        _info(Icons.schedule, "On-time Service"),
+        _info(Icons.attach_money, "Transparent Pricing"),
+        _info(Icons.emoji_emotions, "Satisfaction Guaranteed"),
+      ],
+    );
+  }
+
+  Widget _info(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.blue.shade100,
+            child: Icon(icon, color: Colors.blue),
+          ),
+          const SizedBox(width: 12),
+          Text(text, style: GoogleFonts.openSans(fontSize: 16)),
+        ],
+      ),
+    );
+  }
+
+  /// 🔹 CALL TO ACTION
+  Widget _buildCallToAction() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade600, Colors.blue.shade400],
+        ),
+        borderRadius: BorderRadius.circular(25),
+      ),
+      child: Column(
+        children: [
+          Text(
+            "Experience the Best Service Today!",
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
             ),
-          )
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Join thousands of happy customers who trust us every day.",
+            style: GoogleFonts.openSans(color: Colors.white70),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.white),
+            onPressed: () {},
+            child: const Text(
+              "Get Started",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
     );

@@ -150,11 +150,11 @@ class _UserPanelState extends State<UserPanel> {
         children: [
           _tabs[_selectedIndex],
           Positioned(
-            top: 40,
-            left: 16,
+            top: 25,
+            right: 16,
             child: FloatingActionButton(
               mini: true,
-              backgroundColor: Colors.black87,
+              backgroundColor: const Color.fromARGB(255, 6, 97, 171),
               child: const Icon(Icons.menu, color: Colors.white),
               onPressed: () {
                 _scaffoldKey.currentState?.openDrawer();
@@ -239,7 +239,7 @@ class _UserPanelState extends State<UserPanel> {
                 _tabs[_selectedIndex],
                 Positioned(
                   top: 40,
-                  left: 16,
+                  right: 16,
                   child: FloatingActionButton(
                     mini: true,
                     backgroundColor: Colors.black87,

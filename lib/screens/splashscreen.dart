@@ -123,7 +123,7 @@ class _SplashScreenState extends State<SplashScreen>
           child: ScaleTransition(
             scale: _logoScaleAnimation,
             child: Image.asset(
-              'assets/pic/Kaamwala.png',
+              'assets/pic/Logo.png',
               width: size.width * 0.6,
               filterQuality: FilterQuality.high,
             ),

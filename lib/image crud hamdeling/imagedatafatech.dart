@@ -593,6 +593,21 @@
 // }
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+// no features
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -600,6 +615,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:kam_wala_app/Auth/login_screen.dart';
 import 'package:kam_wala_app/Service_Request/product_list.dart';
 import 'package:kam_wala_app/image crud hamdeling/product_list_screen.dart';
+import 'package:kam_wala_app/image%20crud%20hamdeling/product_model.dart';
 
 class FetchAllCategories extends StatefulWidget {
   const FetchAllCategories({super.key});
@@ -623,6 +639,12 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
     return FirebaseFirestore.instance
         .collection('categories')
         .orderBy('createdAt', descending: true)
+        .snapshots();
+  }
+   Stream<QuerySnapshot> fetchFeaturedServices() {
+    return FirebaseFirestore.instance
+        .collection('services')
+        .limit(10)
         .snapshots();
   }
 
@@ -668,7 +690,54 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
               ),
             ),
 
+            
+  /// 🌟 FEATURED SERVICES
             Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Featured Services",
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 12),SizedBox(
+              height: 100,
+              child: StreamBuilder<QuerySnapshot>(
+                stream: fetchFeaturedServices(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final services = snapshot.data!.docs;
+
+                  if (services.isEmpty) {
+                    return const Center(child: Text("No Featured Services"));
+                  }
+
+                  return ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: services.length,
+                    itemBuilder: (context, index) {
+                      final data =
+                          services[index].data() as Map<String, dynamic>;
+                      final product = ProductModel.fromJson(data);
+
+                      return _featuredServiceCard(product);
+                    },
+                  );
+                },
+              ),
+            ),
+
+Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -682,7 +751,6 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
                 ),
               ),
             ),
-
             // Category Grid
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
@@ -781,23 +849,133 @@ class _FetchAllCategoriesState extends State<FetchAllCategories> {
         return Icons.electrical_services;
       case "ac repair":
       case "ac services":
+      case "ac technician":
         return Icons.ac_unit;
       case "geyser repair":
       case "geyser":
+      case "geyser services":
         return Icons.water_damage_outlined;
       case "cleaner":
+      case "cleaning services":
       case "cleaning":
         return Icons.cleaning_services;
       case "painter":
         return Icons.format_paint;
       case "carpenter":
         return Icons.handyman;
+      case "handy man":
       case "handyman":
         return Icons.build;
       default:
         return Icons.miscellaneous_services;
     }
   }
+
+/// 🌟 FEATURED CARD (DARAZ STYLE)
+Widget _featuredServiceCard(ProductModel product) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProductPage(
+            categoryName: product.title,
+            categoryId: product.categoryId,
+            docId: product.categoryId,
+          ),
+        ),
+      );
+    },
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        width: 280, // landscape width
+        height: 90, // short height
+        margin: const EdgeInsets.only(right: 14),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            /// 🖼 IMAGE (LEFT)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: product.img.isNotEmpty
+                  ? Image.memory(
+                      base64Decode(product.img),
+                      width: 74,
+                      height: 74,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 74,
+                      height: 74,
+                      color: Colors.blue.shade100,
+                      child: const Icon(Icons.image, size: 28),
+                    ),
+            ),
+      
+            const SizedBox(width: 10),
+      
+            /// 📄 DETAILS (RIGHT)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    product.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    product.des,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Rs. ${product.price}",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      
+            /// 👉 ARROW
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
 
   // Category Card UI
   Widget _buildCategoryCard(String title, VoidCallback onTap) {
