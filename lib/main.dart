@@ -185,6 +185,7 @@ import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:kam_wala_app/image%20crud%20hamdeling/workernotification.dart';
 
 import 'package:kam_wala_app/screens/splashscreen.dart';
 import 'package:kam_wala_app/firebase_options.dart';
@@ -223,21 +224,41 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 // -------------------------------------------------------
 // 🔥 HANDLE NOTIFICATION CLICK (ALL STATES)
 // -------------------------------------------------------
-void handleNotificationClick() {
-  final context = navKey.currentContext;
-  if (context == null) return;
+// void handleNotificationClick() {
+//   final context = navKey.currentContext;
+//   if (context == null) return;
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => WorkerRequestsPagenew(
-        workerId: "123",
-        workerName: "Worker",
-        workerPhone: "03001234567",
+//   Navigator.push(
+//     context,
+//     MaterialPageRoute(
+//       builder: (_) => WorkerRequestsPagenew(
+//         workerId: "123",
+//         workerName: "Worker",
+//         workerPhone: "03001234567",
+//       ),
+//     ),
+//   );
+// }
+void handleNotificationClick(RemoteMessage message) {
+  final ctx = navKey.currentContext;
+  if (ctx == null) return;
+
+  final data = message.data;
+
+  if (data['screen'] == 'worker_notification') {
+    Navigator.push(
+      ctx,
+      MaterialPageRoute(
+        builder: (_) => WorkerNotificationPage(
+          requestId: data['requestId'], // 👈 ONLY REQUEST
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
+
+
+
 
 
 // -------------------------------------------------------
