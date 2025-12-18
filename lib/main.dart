@@ -179,23 +179,229 @@
 //   print("🔥 FCM Token: $token");
 
 //   runApp(const MyApp());
+// // }
+
+
+
+
+
+// Notification page nai khulrha 
+// import 'package:flutter/material.dart';
+// import 'package:flutter/foundation.dart'; 
+// import 'package:firebase_core/firebase_core.dart';
+// import 'package:firebase_messaging/firebase_messaging.dart';
+// import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// import 'package:kam_wala_app/image%20crud%20hamdeling/workernotification.dart';
+
+// import 'package:kam_wala_app/screens/splashscreen.dart';
+// import 'package:kam_wala_app/firebase_options.dart';
+
+// // 🔥 Your Worker Requests Page
+// import 'package:kam_wala_app/Service_Request/worker_requests_page.dart';
+
+
+// // -------------------------------------------------------
+// // 🔹 GLOBAL NAVIGATOR KEY (App ko background/terminated me bhi navigate karega)
+// // -------------------------------------------------------
+// final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
+
+
+// // -------------------------------------------------------
+// // 🔹 BACKGROUND MESSAGE HANDLER
+// // -------------------------------------------------------
+// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+//   if (Firebase.apps.isEmpty) {
+//     await Firebase.initializeApp(
+//       options: DefaultFirebaseOptions.currentPlatform,
+//     );
+//   }
+
+//   print("📩 Background message: ${message.notification?.title}");
 // }
+
+
+// // -------------------------------------------------------
+// // 🔥 LOCAL NOTIFICATION PLUGIN
+// // -------------------------------------------------------
+// final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+//     FlutterLocalNotificationsPlugin();
+
+
+// // -------------------------------------------------------
+// // 🔥 HANDLE NOTIFICATION CLICK (ALL STATES)
+// // -------------------------------------------------------
+// // void handleNotificationClick() {
+// //   final context = navKey.currentContext;
+// //   if (context == null) return;
+
+// //   Navigator.push(
+// //     context,
+// //     MaterialPageRoute(
+// //       builder: (_) => WorkerRequestsPagenew(
+// //         workerId: "123",
+// //         workerName: "Worker",
+// //         workerPhone: "03001234567",
+// //       ),
+// //     ),
+// //   );
+// // }
+// void handleNotificationClick(RemoteMessage message) {
+//   final data = message.data;
+
+//   if (data['screen'] == 'worker_notification') {
+//     openWorkerNotificationPage(
+//       requestId: data['requestId'],
+//     );
+//   }
+// }
+
+// void openWorkerNotificationPage({String? requestId}) {
+//   final ctx = navKey.currentContext;
+//   if (ctx == null) return;
+
+//   Navigator.push(
+//     ctx,
+//     MaterialPageRoute(
+//       builder: (_) => WorkerNotificationPage(
+//         requestId: requestId,
+//       ),
+//     ),
+//   );
+// }
+
+
+
+
+
+// // -------------------------------------------------------
+// // 🔥 BACKGROUND TAP HANDLER FOR TERMINATED STATE
+// // -------------------------------------------------------
+// @pragma('vm:entry-point')
+// void notificationTapBackground(NotificationResponse response) {
+//   openWorkerNotificationPage();
+// }
+
+
+
+// // -------------------------------------------------------
+// // 🔥 MAIN
+// // -------------------------------------------------------
+// Future<void> main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   await Firebase.initializeApp(
+//     options: DefaultFirebaseOptions.currentPlatform,
+//   );
+
+//   // ✔ Background handler (Non-Web)
+//   if (!kIsWeb) {
+//     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+//   }
+
+//   // ✔ Notification Channel setup
+//   const AndroidInitializationSettings initializationSettingsAndroid =
+//       AndroidInitializationSettings('@mipmap/ic_launcher');
+
+//   final InitializationSettings initializationSettings =
+//       InitializationSettings(android: initializationSettingsAndroid);
+
+//   await flutterLocalNotificationsPlugin.initialize(
+//   initializationSettings,
+//   onDidReceiveNotificationResponse: (details) {
+//     openWorkerNotificationPage();
+//   },
+//   onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+// );
+
+
+//   // ✔ FCM Permission (Non-web)
+//   if (!kIsWeb) {
+//     FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+//     await messaging.requestPermission(alert: true, badge: true, sound: true);
+
+//     String? token = await messaging.getToken();
+//     print("🔥 FCM Token: $token");
+//   }
+
+//   // ✔ Foreground message listener (Android-style local notification)
+//   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+//     RemoteNotification? notification = message.notification;
+//     if (notification != null) {
+//       flutterLocalNotificationsPlugin.show(
+//         notification.hashCode,
+//         notification.title,
+//         notification.body,
+//         const NotificationDetails(
+//           android: AndroidNotificationDetails(
+//             'high_importance_channel',
+//             'High Importance Notifications',
+//             importance: Importance.max,
+//             priority: Priority.high,
+//           ),
+//         ),
+//       );
+//     }
+//   });
+
+//   // ✔ When user taps notification (app background → open)
+//   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+//   handleNotificationClick(message); // ✅ parameter passed
+// });
+
+
+//   // ✔ When app is terminated + opened by notification
+//   final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+// if (initialMessage != null) {
+//   Future.delayed(const Duration(milliseconds: 500), () {
+//     handleNotificationClick(initialMessage); // ✅ parameter
+//   });
+// }
+
+
+//   runApp(const MyApp());
+// }
+
+
+
+// // -------------------------------------------------------
+// // 🔥 MAIN APP WIDGET
+// // -------------------------------------------------------
+// class MyApp extends StatelessWidget {
+//   const MyApp({super.key});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       navigatorKey: navKey, // VERY IMPORTANT
+//       debugShowCheckedModeBanner: false,
+//       title: "Kaam Wala App",
+//       theme: ThemeData(
+//         primarySwatch: Colors.blue,
+//         fontFamily: 'Roboto',
+//       ),
+//       home: const SplashScreen(),
+//     );
+//   }
+// }
+
+
+
+
+// Yaha khuljay shyd
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart'; 
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:kam_wala_app/image%20crud%20hamdeling/workernotification.dart';
 
-import 'package:kam_wala_app/screens/splashscreen.dart';
 import 'package:kam_wala_app/firebase_options.dart';
-
-// 🔥 Your Worker Requests Page
-import 'package:kam_wala_app/Service_Request/worker_requests_page.dart';
+import 'package:kam_wala_app/screens/splashscreen.dart';
+import 'package:kam_wala_app/image crud hamdeling/workernotification.dart';
 
 
 // -------------------------------------------------------
-// 🔹 GLOBAL NAVIGATOR KEY (App ko background/terminated me bhi navigate karega)
+// 🔹 GLOBAL NAVIGATOR KEY
 // -------------------------------------------------------
 final GlobalKey<NavigatorState> navKey = GlobalKey<NavigatorState>();
 
@@ -209,69 +415,51 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
   }
-
-  print("📩 Background message: ${message.notification?.title}");
+  debugPrint("📩 Background message: ${message.data}");
 }
 
 
 // -------------------------------------------------------
-// 🔥 LOCAL NOTIFICATION PLUGIN
+// 🔹 LOCAL NOTIFICATION INSTANCE
 // -------------------------------------------------------
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 
 
 // -------------------------------------------------------
-// 🔥 HANDLE NOTIFICATION CLICK (ALL STATES)
+// 🔹 HANDLE FCM NOTIFICATION CLICK
 // -------------------------------------------------------
-// void handleNotificationClick() {
-//   final context = navKey.currentContext;
-//   if (context == null) return;
-
-//   Navigator.push(
-//     context,
-//     MaterialPageRoute(
-//       builder: (_) => WorkerRequestsPagenew(
-//         workerId: "123",
-//         workerName: "Worker",
-//         workerPhone: "03001234567",
-//       ),
-//     ),
-//   );
-// }
 void handleNotificationClick(RemoteMessage message) {
-  final ctx = navKey.currentContext;
-  if (ctx == null) return;
-
   final data = message.data;
 
   if (data['screen'] == 'worker_notification') {
-    Navigator.push(
-      ctx,
-      MaterialPageRoute(
-        builder: (_) => WorkerNotificationPage(
-          requestId: data['requestId'], // 👈 ONLY REQUEST
-        ),
-      ),
+    _openWorkerNotificationPage(
+      requestId: data['requestId'],
     );
   }
 }
 
 
-
-
-
 // -------------------------------------------------------
-// 🔥 BACKGROUND TAP HANDLER FOR TERMINATED STATE
+// 🔹 OPEN WORKER NOTIFICATION PAGE
 // -------------------------------------------------------
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse response) {
-  handleNotificationClick();
+void _openWorkerNotificationPage({String? requestId}) {
+  final ctx = navKey.currentContext;
+  if (ctx == null) return;
+
+  Navigator.push(
+    ctx,
+    MaterialPageRoute(
+      builder: (_) => WorkerNotificationPage(
+        requestId: requestId,
+      ),
+    ),
+  );
 }
 
 
 // -------------------------------------------------------
-// 🔥 MAIN
+// 🔹 MAIN
 // -------------------------------------------------------
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -280,39 +468,34 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // ✔ Background handler (Non-Web)
+  // 🔹 Background handler (Android only)
   if (!kIsWeb) {
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onBackgroundMessage(
+      _firebaseMessagingBackgroundHandler,
+    );
   }
 
-  // ✔ Notification Channel setup
-  const AndroidInitializationSettings initializationSettingsAndroid =
+  // 🔹 Local notification setup
+  const AndroidInitializationSettings androidInit =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
-  final InitializationSettings initializationSettings =
-      InitializationSettings(android: initializationSettingsAndroid);
+  final InitializationSettings initSettings =
+      InitializationSettings(android: androidInit);
 
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse details) {
-      handleNotificationClick();
-    },
-    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
-  );
+  await flutterLocalNotificationsPlugin.initialize(initSettings);
 
-  // ✔ FCM Permission (Non-web)
+  // 🔹 Permission + Token
   if (!kIsWeb) {
     FirebaseMessaging messaging = FirebaseMessaging.instance;
-
     await messaging.requestPermission(alert: true, badge: true, sound: true);
-
-    String? token = await messaging.getToken();
-    print("🔥 FCM Token: $token");
+    debugPrint("🔥 FCM Token: ${await messaging.getToken()}");
   }
 
-  // ✔ Foreground message listener (Android-style local notification)
+  // -------------------------------------------------------
+  // 🔹 FOREGROUND MESSAGE
+  // -------------------------------------------------------
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
+    final notification = message.notification;
     if (notification != null) {
       flutterLocalNotificationsPlugin.show(
         notification.hashCode,
@@ -330,16 +513,22 @@ Future<void> main() async {
     }
   });
 
-  // ✔ When user taps notification (app background → open)
+  // -------------------------------------------------------
+  // 🔹 BACKGROUND → OPEN
+  // -------------------------------------------------------
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    handleNotificationClick();
+    handleNotificationClick(message);
   });
 
-  // ✔ When app is terminated + opened by notification
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  // -------------------------------------------------------
+  // 🔹 TERMINATED → OPEN  (🔥 MOST IMPORTANT)
+  // -------------------------------------------------------
+  final initialMessage =
+      await FirebaseMessaging.instance.getInitialMessage();
+
   if (initialMessage != null) {
-    Future.delayed(const Duration(milliseconds: 500), () {
-      handleNotificationClick();
+    Future.delayed(const Duration(milliseconds: 700), () {
+      handleNotificationClick(initialMessage);
     });
   }
 
@@ -347,9 +536,8 @@ Future<void> main() async {
 }
 
 
-
 // -------------------------------------------------------
-// 🔥 MAIN APP WIDGET
+// 🔹 APP ROOT
 // -------------------------------------------------------
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -357,7 +545,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navKey, // VERY IMPORTANT
+      navigatorKey: navKey,
       debugShowCheckedModeBanner: false,
       title: "Kaam Wala App",
       theme: ThemeData(
