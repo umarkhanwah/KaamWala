@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -42,14 +43,37 @@ class _UserPanelState extends State<UserPanel> {
       _selectedIndex = index;
     });
   }
+void _logout() async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
 
-  void _logout() {
-    FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen1()),
+    if (user != null) {
+      // 🔹 Remove FCM token from Firestore
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'fcmToken': FieldValue.delete(),
+        'updatedAt': DateTime.now(),
+      });
+
+      // 🔹 Delete token locally on device (so this device stops receiving notifications)
+      await FirebaseMessaging.instance.deleteToken();
+    }
+
+    // 🔹 Sign out from Firebase Auth
+    await FirebaseAuth.instance.signOut();
+
+    // 🔹 Navigate to login screen and remove all previous routes
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen1()),
+      (route) => false,
+    );
+  } catch (e) {
+    // 🔹 Optional: show error if logout failed
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Logout failed: $e")),
     );
   }
+}
+
 
   Widget _buildDrawer() {
     final user = FirebaseAuth.instance.currentUser;
