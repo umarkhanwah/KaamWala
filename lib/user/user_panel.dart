@@ -26,7 +26,7 @@ class _UserPanelState extends State<UserPanel> {
 
   final List<Widget> _tabs = [
     SubCategoryLongScreen(),
-    RequestsScreen(),   // 👈 ab ye requests show karega
+    RequestsScreen(), // 👈 ab ye requests show karega
     Home3Screen(),
     UserFeedbackScreen(userId: "user123"),
   ];
@@ -43,37 +43,41 @@ class _UserPanelState extends State<UserPanel> {
       _selectedIndex = index;
     });
   }
-void _logout() async {
-  try {
-    final user = FirebaseAuth.instance.currentUser;
 
-    if (user != null) {
-      // 🔹 Remove FCM token from Firestore
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'fcmToken': FieldValue.delete(),
-        'updatedAt': DateTime.now(),
-      });
+  void _logout() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
 
-      // 🔹 Delete token locally on device (so this device stops receiving notifications)
-      await FirebaseMessaging.instance.deleteToken();
+      if (user != null) {
+        // 🔹 Remove FCM token from Firestore
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .update({
+              'fcmToken': FieldValue.delete(),
+              'updatedAt': DateTime.now(),
+            });
+
+        // 🔹 Delete token locally on device (so this device stops receiving notifications)
+        await FirebaseMessaging.instance.deleteToken();
+      }
+
+      // 🔹 Sign out from Firebase Auth
+      await FirebaseAuth.instance.signOut();
+
+      // 🔹 Navigate to login screen and remove all previous routes
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen1()),
+        (route) => false,
+      );
+    } catch (e) {
+      // 🔹 Optional: show error if logout failed
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Logout failed: $e")));
+      print(e);
     }
-
-    // 🔹 Sign out from Firebase Auth
-    await FirebaseAuth.instance.signOut();
-
-    // 🔹 Navigate to login screen and remove all previous routes
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const LoginScreen1()),
-      (route) => false,
-    );
-  } catch (e) {
-    // 🔹 Optional: show error if logout failed
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Logout failed: $e")),
-    );
   }
-}
-
 
   Widget _buildDrawer() {
     final user = FirebaseAuth.instance.currentUser;
@@ -81,10 +85,11 @@ void _logout() async {
     return Drawer(
       backgroundColor: Colors.white,
       child: FutureBuilder<DocumentSnapshot>(
-        future: FirebaseFirestore.instance
-            .collection("users") // 👈 apni collection ka naam yahan rakhna
-            .doc(user!.uid)
-            .get(),
+        future:
+            FirebaseFirestore.instance
+                .collection("users") // 👈 apni collection ka naam yahan rakhna
+                .doc(user!.uid)
+                .get(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -100,16 +105,16 @@ void _logout() async {
             padding: EdgeInsets.zero,
             children: [
               UserAccountsDrawerHeader(
-                decoration: const BoxDecoration(
-                  color: Colors.black87,
-                ),
+                decoration: const BoxDecoration(color: Colors.black87),
                 accountName: Text(
                   userData['name'] ?? "Demo User", // Firestore name
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 accountEmail: Text(userData['email'] ?? "No Email"),
                 currentAccountPicture: const CircleAvatar(
-                  backgroundImage: AssetImage("assets/demo_user.png"), // Demo pic
+                  backgroundImage: AssetImage(
+                    "assets/demo_user.png",
+                  ), // Demo pic
                 ),
                 otherAccountsPictures: [
                   IconButton(
@@ -118,7 +123,8 @@ void _logout() async {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const EditProfileScreen()),
+                          builder: (context) => const EditProfileScreen(),
+                        ),
                       );
                     },
                   ),
@@ -139,7 +145,8 @@ void _logout() async {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const EditProfileScreen()),
+                      builder: (context) => const EditProfileScreen(),
+                    ),
                   );
                 },
               ),
@@ -150,7 +157,8 @@ void _logout() async {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => const TermsConditionsScreen()),
+                      builder: (context) => const TermsConditionsScreen(),
+                    ),
                   );
                 },
               ),
@@ -187,37 +195,36 @@ void _logout() async {
           ),
         ],
       ),
-    bottomNavigationBar: Container(
-  // margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),  
-  decoration: BoxDecoration(
-    color: Colors.white,
-    borderRadius: BorderRadius.circular(18),
-    boxShadow: [
-      BoxShadow(
-        color: Colors.black12,
-        blurRadius: 10,
-        offset: Offset(0, 6),
+      bottomNavigationBar: Container(
+        // margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ConvexAppBar(
+          style: TabStyle.react, // react animation kept
+          backgroundColor: Colors.white, // container dikhega
+          activeColor: Color(0xFF6A11CB), // accent
+          color: Colors.grey[600]!, // inactive
+          curveSize: 72,
+          elevation: 0,
+          items: const [
+            TabItem(icon: Icons.home, title: 'Home'),
+            TabItem(icon: Icons.list_alt, title: 'Requests'), // 👈 changed
+            TabItem(icon: Icons.bolt, title: 'Services'),
+            TabItem(icon: Icons.feedback_rounded, title: 'Feedback'),
+          ],
+          initialActiveIndex: _selectedIndex,
+          onTap: _onItemTapped,
+        ),
       ),
-    ],
-  ),
-  child: ConvexAppBar(
-    style: TabStyle.react,                 // react animation kept
-    backgroundColor: Colors.white,   // container dikhega
-    activeColor: Color(0xFF6A11CB),        // accent
-    color: Colors.grey[600]!,               // inactive
-    curveSize: 72,
-    elevation: 0,
-    items: const [
-  TabItem(icon: Icons.home, title: 'Home'),
-  TabItem(icon: Icons.list_alt, title: 'Requests'), // 👈 changed
-  TabItem(icon: Icons.bolt, title: 'Services'),
-  TabItem(icon: Icons.feedback_rounded, title: 'Feedback'),
-],
-    initialActiveIndex: _selectedIndex,
-    onTap: _onItemTapped,
-  ),
-),
-
     );
   }
 
@@ -231,11 +238,13 @@ void _logout() async {
             selectedIndex: _selectedIndex,
             backgroundColor: Colors.black87,
             onDestinationSelected: _onItemTapped,
-            selectedIconTheme:
-                const IconThemeData(color: Colors.lightBlueAccent),
+            selectedIconTheme: const IconThemeData(
+              color: Colors.lightBlueAccent,
+            ),
             unselectedIconTheme: const IconThemeData(color: Colors.white70),
-            selectedLabelTextStyle:
-                const TextStyle(color: Colors.lightBlueAccent),
+            selectedLabelTextStyle: const TextStyle(
+              color: Colors.lightBlueAccent,
+            ),
             unselectedLabelTextStyle: const TextStyle(color: Colors.white70),
             labelType: NavigationRailLabelType.all,
             destinations: const [

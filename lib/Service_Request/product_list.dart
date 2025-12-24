@@ -1146,6 +1146,7 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 
 import 'package:kam_wala_app/image crud hamdeling/product_model.dart';
 import 'package:kam_wala_app/image%20crud%20hamdeling/worker_tracking_page.dart';
@@ -1191,29 +1192,80 @@ class _ProductPageState extends State<ProductPage> {
       setState(() {});
     });
   }
+// Future<String> createRequest(ProductModel service) async {
+//   final user = FirebaseAuth.instance.currentUser;
+//   final reqRef = FirebaseFirestore.instance.collection('requests');
+
+//   final docRef = reqRef.doc();
+
+//   await docRef.set({
+//     "requestId": docRef.id,
+//     "userId": user?.uid ?? "",
+//     "serviceName": service.title,
+//     "charges": service.price,
+//     "description": service.des,
+//     "categoryId": widget.categoryId,
+//     "status": "pending",
+//     "createdAt": FieldValue.serverTimestamp(),
+//   });
+
+//   // 🔥 Cloud Function will auto-trigger here
+//   return docRef.id;
+// }
+
 Future<String> createRequest(ProductModel service) async {
   final user = FirebaseAuth.instance.currentUser;
-  final reqRef = FirebaseFirestore.instance.collection('requests');
+  if (user == null) throw Exception("User not logged in");
 
+  // 🔹 Request karne se pehle current location fetch karna
+  Position position = await _determinePosition();
+
+  final reqRef = FirebaseFirestore.instance.collection('requests');
   final docRef = reqRef.doc();
 
   await docRef.set({
     "requestId": docRef.id,
-    "userId": user?.uid ?? "",
+    "userId": user.uid,
     "serviceName": service.title,
     "charges": service.price,
     "description": service.des,
-    "categoryId": widget.categoryId,
+    "categoryId": service.categoryId,
     "status": "pending",
     "createdAt": FieldValue.serverTimestamp(),
+    // 🔹 User current location
+    "userLat": position.latitude,
+    "userLng": position.longitude,
   });
 
-  // 🔥 Cloud Function will auto-trigger here
   return docRef.id;
 }
 
+// 🔹 Location permission + fetch helper
+Future<Position> _determinePosition() async {
+  bool serviceEnabled;
+  LocationPermission permission;
 
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    throw Exception('Location services are disabled.');
+  }
 
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      throw Exception('Location permissions are denied');
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    throw Exception(
+        'Location permissions are permanently denied, we cannot request permissions.');
+  }
+
+  return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+}
 
   void _onBookNow(ProductModel service) async {
     try {

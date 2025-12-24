@@ -12,24 +12,30 @@ exports.notifyWorkersOnRequest = onDocumentCreated(
 
     console.log("🔥 New request:", requestId);
 
-    // 🔹 Fetch matching workers
+    // ✅ READ FROM USERS (WORKERS)
     const workersSnap = await admin.firestore()
-      .collection("workers")
+      .collection("users")
+      .where("role", "==", "worker")
       .where("categoryId", "==", requestData.categoryId)
       .get();
 
-    if (workersSnap.empty) return;
+    if (workersSnap.empty) {
+      console.log("⚠ No workers found");
+      return;
+    }
 
     const tokens = [];
+
     workersSnap.forEach(doc => {
-      if (doc.data().fcmToken) {
-        tokens.push(doc.data().fcmToken);
-      }
+      const token = doc.data().fcmToken;
+      if (token) tokens.push(token);
     });
 
-    if (tokens.length === 0) return;
+    if (tokens.length === 0) {
+      console.log("⚠ No FCM tokens found");
+      return;
+    }
 
-    // 🔹 Send FCM
     await admin.messaging().sendEachForMulticast({
       tokens,
       notification: {
@@ -38,10 +44,10 @@ exports.notifyWorkersOnRequest = onDocumentCreated(
       },
       data: {
         screen: "worker_notification",
-        requestId: requestId,
+        requestId,
       },
     });
 
-    console.log("✅ Notification sent");
+    console.log("✅ Notification sent to", tokens.length, "workers");
   }
 );

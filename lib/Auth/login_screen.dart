@@ -20,24 +20,47 @@ class LoginScreen1 extends StatefulWidget {
 
 class _LoginScreen1State extends State<LoginScreen1>
     with SingleTickerProviderStateMixin {
+  //       Future<void> _saveFCMToken(String uid) async {
+  //   try {
+  //     String? token = await FirebaseMessaging.instance.getToken();
 
+  //     if (token != null) {
+  //       await FirebaseFirestore.instance.collection("users").doc(uid).update({
+  //         "fcmToken": token,
+  //         "updatedAt": DateTime.now(),
+  //       });
 
-      Future<void> _saveFCMToken(String uid) async {
-  try {
-    String? token = await FirebaseMessaging.instance.getToken();
+  //       print("🔥 Worker Token Saved: $token");
+  //     }
+  //   } catch (e) {
+  //     print("⚠️ Token Save Error: $e");
+  //   }
+  // }
+
+  Future<void> _saveFCMToken(String uid) async {
+    final token = await FirebaseMessaging.instance.getToken();
 
     if (token != null) {
       await FirebaseFirestore.instance.collection("users").doc(uid).update({
         "fcmToken": token,
         "updatedAt": DateTime.now(),
       });
-
-      print("🔥 Worker Token Saved: $token");
+      print("✅ FCM token saved");
     }
-  } catch (e) {
-    print("⚠️ Token Save Error: $e");
   }
-}
+
+  void setupFCMTokenRefresh() {
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        await FirebaseFirestore.instance.collection("users").doc(uid).update({
+          "fcmToken": newToken,
+          "updatedAt": DateTime.now(),
+        });
+        print("🔄 Token refreshed");
+      }
+    });
+  }
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -53,6 +76,9 @@ class _LoginScreen1State extends State<LoginScreen1>
   @override
   void initState() {
     super.initState();
+    // FCM ko refresh karyga
+    setupFCMTokenRefresh();
+
     _iconController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -143,6 +169,50 @@ class _LoginScreen1State extends State<LoginScreen1>
     super.dispose();
   }
 
+  // Future<void> _login() async {
+  //   String email = _emailController.text.trim();
+  //   String password = _passwordController.text.trim();
+
+  //   if (email.isEmpty || password.isEmpty) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Please enter email and password")),
+  //     );
+  //     return;
+  //   }
+
+  //   setState(() => _loading = true);
+
+  //   try {
+  //     UserCredential userCred = await _auth.signInWithEmailAndPassword(
+  //       email: email,
+  //       password: password,
+  //     );
+
+  //     DocumentSnapshot userDoc =
+  //         await _firestore.collection('users').doc(userCred.user!.uid).get();
+
+  //     if (!userDoc.exists) {
+  //       throw Exception("User data not found");
+  //     }
+
+  //     String role = userDoc['role']?.toString().toLowerCase() ?? '';
+  //     print("User Role: $role");
+  //     await _saveFCMToken(userCred.user!.uid);
+
+  //     _navigateToRoleScreen(role);
+  //   } on FirebaseAuthException catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text(e.message ?? "Login failed")));
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+  //   } finally {
+  //     setState(() => _loading = false);
+  //   }
+  // }
+
   Future<void> _login() async {
     String email = _emailController.text.trim();
     String password = _passwordController.text.trim();
@@ -162,8 +232,9 @@ class _LoginScreen1State extends State<LoginScreen1>
         password: password,
       );
 
-      DocumentSnapshot userDoc =
-          await _firestore.collection('users').doc(userCred.user!.uid).get();
+      final uid = userCred.user!.uid;
+
+      final userDoc = await _firestore.collection('users').doc(uid).get();
 
       if (!userDoc.exists) {
         throw Exception("User data not found");
@@ -171,7 +242,9 @@ class _LoginScreen1State extends State<LoginScreen1>
 
       String role = userDoc['role']?.toString().toLowerCase() ?? '';
       print("User Role: $role");
-      await _saveFCMToken(userCred.user!.uid);
+
+      // 🔹 Save current FCM token
+      await _saveFCMToken(uid);
 
       _navigateToRoleScreen(role);
     } on FirebaseAuthException catch (e) {
