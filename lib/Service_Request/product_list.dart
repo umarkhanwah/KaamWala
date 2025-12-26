@@ -1223,22 +1223,27 @@ Future<String> createRequest(ProductModel service) async {
   final reqRef = FirebaseFirestore.instance.collection('requests');
   final docRef = reqRef.doc();
 
-  await docRef.set({
-    "requestId": docRef.id,
-    "userId": user.uid,
-    "serviceName": service.title,
-    "charges": service.price,
-    "description": service.des,
-    "categoryId": service.categoryId,
-    "status": "pending",
-    "createdAt": FieldValue.serverTimestamp(),
-    // 🔹 User current location
-    "userLat": position.latitude,
-    "userLng": position.longitude,
-  });
+ await docRef.set({
+  "requestId": docRef.id,
+  "userId": user.uid,
+  "serviceName": service.title,
+  "charges": service.price,
+  "description": service.des,
+  "categoryId": service.categoryId,
+  "status": "pending",
+  "createdAt": FieldValue.serverTimestamp(),
+
+  // ✅ FIXED STRUCTURE
+  "location": {
+    "lat": position.latitude,
+    "lng": position.longitude,
+  }
+});
+
 
   return docRef.id;
 }
+
 
 // 🔹 Location permission + fetch helper
 Future<Position> _determinePosition() async {
@@ -1423,19 +1428,21 @@ class _WaitingForWorkerScreenState extends State<WaitingForWorkerScreen> {
 
           // cancel subscription before navigation
           _sub?.cancel();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => WorkerTrackingPage(
-                workerId: workerId,
-                workerName: workerName,
-                workerPhone: workerPhone,
-                eta: eta,
-                serviceName: serviceName,
-                charges: charges,
-              ),
-            ),
-          );
+         Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (_) => WorkerTrackingPage(
+      requestId: requestId, // 👈 ADD THIS
+      workerId: workerId,
+      workerName: workerName,
+      workerPhone: workerPhone,
+      eta: eta,
+      serviceName: serviceName,
+      charges: charges,
+    ),
+  ),
+);
+
         } else if (status == 'rejected') {
           setState(() {
             _message = "No worker accepted. Try again.";

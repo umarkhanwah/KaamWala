@@ -11,7 +11,7 @@ class AuthService {
     required String phone,
     required String email,
     required String password,
-    required String role,
+    required String role, required Map extraFields,
   }) async {
     try {
       UserCredential userCredential = await _auth
