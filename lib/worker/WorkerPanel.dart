@@ -141,67 +141,136 @@ void _logout() async {
       _navigateWithFade(UserPanel());
     }
   }
-
-  Widget _buildMobileView() {
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Text(
-              _titles[_selectedIndex],
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Spacer(),
-            DropdownButton<String>(
-              value: _selectedRole,
-              dropdownColor: Colors.blueGrey[900],
-              icon: const Icon(Icons.arrow_drop_down, color: Colors.white),
-              underline: const SizedBox(),
-              onChanged: _handleRoleChange,
-              items:
-                  _roles
-                      .map(
-                        (role) => DropdownMenuItem<String>(
-                          value: role,
-                          child: Text(
-                            role,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      )
-                      .toList(),
-            ),
-          ],
+Widget _workerHeader() {
+  return Container(
+    margin: const EdgeInsets.all(16),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(20),
+      gradient: const LinearGradient(
+        colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.3),
+          blurRadius: 10,
+          offset: const Offset(0, 6),
         ),
-        backgroundColor: Colors.black,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: _logout,
+      ],
+    ),
+    child: Row(
+      children: [
+        const CircleAvatar(
+          radius: 32,
+          backgroundColor: Colors.white,
+          child: Icon(Icons.person, size: 36, color: Colors.blue),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                workerName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                workerPhone,
+                style: const TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 6),
+              Chip(
+                label: const Text("Worker"),
+                backgroundColor: Colors.greenAccent,
+                labelStyle: const TextStyle(color: Colors.black),
+              )
+            ],
           ),
-        ],
+        ),
+        IconButton(
+          icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
+          onPressed: () {
+            _onItemTapped(3); // wallet tab
+          },
+        )
+      ],
+    ),
+  );
+}
+Widget _buildMobileView() {
+  return Scaffold(
+    backgroundColor: const Color(0xFFF4F6FA),
+    appBar: AppBar(
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.black, Color(0xFF1E3C72)],
+          ),
+        ),
       ),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: ConvexAppBar(
-        backgroundColor: Colors.black,
-        activeColor: Colors.blueAccent,
-        style: TabStyle.react,
-        items: const [
-          TabItem(icon: Icons.domain_verification, title: 'Verification'),
-          TabItem(icon: Icons.notifications, title: 'Requests'),
-          TabItem(icon: Icons.summarize, title: 'Summary'), // ✅ New Tab
-          TabItem(icon: Icons.wallet, title: 'Wallet'),
-          TabItem(icon: Icons.feedback_outlined, title: 'Feedback'),
-          //TabItem(icon: Icons.person, title: 'Profile'),
-        ],
-        initialActiveIndex: _selectedIndex,
-        onTap: _onItemTapped,
+      title: Text(
+        _titles[_selectedIndex],
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
-    );
-  }
+      actions: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: DropdownButton<String>(
+            value: _selectedRole,
+            dropdownColor: Colors.black,
+            icon: const Icon(Icons.swap_horiz, color: Colors.white),
+            underline: const SizedBox(),
+            onChanged: _handleRoleChange,
+            items: _roles
+                .map(
+                  (role) => DropdownMenuItem(
+                    value: role,
+                    child: Text(role, style: const TextStyle(color: Colors.white)),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: _logout,
+        ),
+      ],
+    ),
+    body: Column(
+      children: [
+        _workerHeader(), // ⭐ NEW HEADER
+        Expanded(child: _pages[_selectedIndex]),
+      ],
+    ),
+    bottomNavigationBar: ConvexAppBar(
+      backgroundColor: Colors.black,
+      activeColor: Colors.blueAccent,
+      elevation: 8,
+      style: TabStyle.reactCircle,
+      items: const [
+        TabItem(icon: Icons.verified_user, title: 'Verify'),
+        TabItem(icon: Icons.notifications_active, title: 'Requests'),
+        TabItem(icon: Icons.bar_chart, title: 'Summary'),
+        TabItem(icon: Icons.account_balance_wallet, title: 'Wallet'),
+        TabItem(icon: Icons.feedback, title: 'Feedback'),
+      ],
+      initialActiveIndex: _selectedIndex,
+      onTap: _onItemTapped,
+    ),
+  );
+}
 
   Widget _buildTabletDesktopView() {
     return Scaffold(

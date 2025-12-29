@@ -1,38 +1,50 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // ✅ Signup with role
-  Future<User?> signupWithRole({
-    required String name,
-    required String phone,
-    required String email,
-    required String password,
-    required String role, required Map extraFields,
-  }) async {
-    try {
-      UserCredential userCredential = await _auth
-          .createUserWithEmailAndPassword(email: email, password: password);
+Future<User?> signupWithRole({
+  required String name,
+  required String phone,
+  required String email,
+  required String password,
+  required String role,
+  Map<String, dynamic> extraFields = const {},
+}) async {
+  try {
+    final cred = await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      User? user = userCredential.user;
+    final user = cred.user;
+    if (user == null) return null;
 
-      await _firestore.collection("users").doc(user!.uid).set({
-        "name": name,
-        "phone": phone,
-        "email": email,
-        "role": role,
-        "createdAt": FieldValue.serverTimestamp(),
-      });
+    final data = {
+      'name': name,
+      'email': email,
+      'phone': phone,
+      'role': role,
+      'createdAt': FieldValue.serverTimestamp(),
+      ...extraFields, // 🔥 YEH LINE SAB FIX KAR RAHI HAI
+    };
 
-      return user;
-    } catch (e) {
-      print("Signup Error: $e");
-      return null;
-    }
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .set(data);
+
+    return user;
+  } catch (e) {
+    debugPrint("Signup error: $e");
+    return null;
   }
+}
 
   // ✅ Login and get user role
   Future<Map<String, dynamic>?> login(String email, String password) async {
