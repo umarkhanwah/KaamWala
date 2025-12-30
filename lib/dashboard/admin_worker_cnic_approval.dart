@@ -1,7 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 class AdminPanel extends StatefulWidget {
   const AdminPanel({super.key});
 
@@ -11,58 +10,137 @@ class AdminPanel extends StatefulWidget {
 
 class _AdminPanelState extends State<AdminPanel> {
   String searchQuery = "";
-  String? recentlyUpdatedId; // Track last updated worker
+Color statusColor(String status) {
+  switch (status) {
+    case "approved":
+      return Colors.green;
+    case "blocked":
+      return Colors.red;
+    default:
+      return Colors.orange;
+  }
+}
 
-  Future<void> updateWorkerStatus(
-    String docId,
-    String status,
-    String token,
-  ) async {
-    await FirebaseFirestore.instance.collection("workers").doc(docId).update({
-      "status": status,
-      "updatedAt": FieldValue.serverTimestamp(),
-    });
+IconData statusIcon(String status) {
+  switch (status) {
+    case "approved":
+      return Icons.verified;
+    case "blocked":
+      return Icons.block;
+    default:
+      return Icons.hourglass_top;
+  }
+}
+Future<void> updateWorkerStatus(
+  String userId,
+  String status,
+) async {
+  await FirebaseFirestore.instance
+      .collection("users")
+      .doc(userId)
+      .update({
+    "status": status,
+    "updatedAt": FieldValue.serverTimestamp(),
+  });
 
-    await sendPushNotification(token, status);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text("Worker ${status.toUpperCase()}"),
+      backgroundColor: status == "approved"
+          ? Colors.green
+          : Colors.red,
+    ),
+  );
+}
 
-    setState(() {
-      recentlyUpdatedId = docId;
-    });
+  // 🔹 Get category name from categoryId
+  Future<String> _getCategoryName(String? categoryId) async {
+    if (categoryId == null || categoryId.isEmpty) return "No Category";
 
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          recentlyUpdatedId = null;
-        });
-      }
-    });
+    final snap = await FirebaseFirestore.instance
+        .collection("categories")
+        .doc(categoryId)
+        .get();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Worker $status successfully"),
-        backgroundColor: status == "Approved" ? Colors.green : Colors.red,
+    return snap.exists ? snap['name'] ?? "Unknown" : "Unknown";
+  }
+
+  // 🔹 Worker Details Bottom Sheet
+  void _showWorkerDetails(Map<String, dynamic> data, String categoryName) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
       ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            children: [
+              Center(
+                child: Text(
+                  data['name'] ?? "Worker",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const Divider(),
+
+              _detailRow("Category", categoryName),
+              _detailRow("Phone", data['phone']),
+              _detailRow("CNIC", data['cnic']),
+              _detailRow("Email", data['email']),
+              _detailRow(
+                "Created At",
+                data['createdAt'] != null
+                    ? (data['createdAt'] as Timestamp)
+                        .toDate()
+                        .toString()
+                        .substring(0, 16)
+                    : "N/A",
+              ),
+
+              const SizedBox(height: 16),
+
+              ElevatedButton.icon(
+                icon: const Icon(Icons.call),
+                label: const Text("Call Worker"),
+                onPressed: () async {
+                  final phone = data['phone'];
+                  if (phone != null) {
+                    final uri = Uri.parse("tel:$phone");
+                    await launchUrl(uri);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(double.infinity, 45),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Future<void> sendPushNotification(String token, String status) async {
-    try {
-      debugPrint("Send push to: $token | Status: $status");
-      // TODO: Add FCM push notification logic here
-    } catch (e) {
-      debugPrint("Push notification error: $e");
-    }
-  }
-
-  Color getStatusColor(String status) {
-    switch (status) {
-      case "Approved":
-        return Colors.green;
-      case "Rejected":
-        return Colors.red;
-      default:
-        return Colors.orange;
-    }
+  Widget _detailRow(String title, String? value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(title, style: const TextStyle(color: Colors.grey)),
+          ),
+          Expanded(
+            flex: 5,
+            child: Text(value ?? "N/A"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -70,175 +148,124 @@ class _AdminPanelState extends State<AdminPanel> {
     return Scaffold(
       backgroundColor: Colors.blue[50],
       appBar: AppBar(
-        title: const Text("Admin Panel - Worker Requests"),
+        title: const Text("Admin Panel - Workers"),
         backgroundColor: Colors.blue[800],
-        elevation: 0,
         centerTitle: true,
       ),
       body: Column(
         children: [
-          // 🔍 Search Bar
+          // 🔍 Search
           Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(12),
             child: TextField(
               decoration: InputDecoration(
-                hintText: "Search worker by name, phone or CNIC",
-                prefixIcon: const Icon(Icons.search, color: Colors.blue),
+                hintText: "Search worker",
+                prefixIcon: const Icon(Icons.search),
                 filled: true,
                 fillColor: Colors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 16,
-                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  searchQuery = value.toLowerCase();
-                });
-              },
+              onChanged: (v) => setState(() => searchQuery = v.toLowerCase()),
             ),
           ),
 
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
-              stream:
-                  FirebaseFirestore.instance
-                      .collection("workers")
-                      .orderBy("createdAt", descending: true)
-                      .snapshots(),
+              stream: FirebaseFirestore.instance
+                  .collection("users")
+                  .where("role", isEqualTo: "worker")
+                  .orderBy("createdAt", descending: true)
+                  .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final docs =
-                    snapshot.data!.docs.where((doc) {
-                      final name = (doc["name"] ?? "").toString().toLowerCase();
-                      final phone =
-                          (doc["phone"] ?? "").toString().toLowerCase();
-                      final cnic = (doc["cnic"] ?? "").toString().toLowerCase();
-                      return name.contains(searchQuery) ||
-                          phone.contains(searchQuery) ||
-                          cnic.contains(searchQuery);
-                    }).toList();
-
-                if (docs.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      "No worker requests found",
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  );
-                }
+                final docs = snapshot.data!.docs.where((doc) {
+                  final d = doc.data() as Map<String, dynamic>;
+                  return (d['name'] ?? "")
+                          .toString()
+                          .toLowerCase()
+                          .contains(searchQuery) ||
+                      (d['phone'] ?? "")
+                          .toString()
+                          .toLowerCase()
+                          .contains(searchQuery) ||
+                      (d['cnic'] ?? "")
+                          .toString()
+                          .toLowerCase()
+                          .contains(searchQuery);
+                }).toList();
 
                 return ListView.builder(
-                  padding: const EdgeInsets.all(8),
                   itemCount: docs.length,
                   itemBuilder: (context, index) {
                     final doc = docs[index];
                     final data = doc.data() as Map<String, dynamic>;
-                    final name = data["name"] ?? "No Name";
-                    final phone = data["phone"] ?? "No Phone";
-                    final cnic = data["cnic"] ?? "No CNIC";
-                    final status = data["status"] ?? "Pending";
-                    final token = data["fcmToken"] ?? "";
 
-                    final isUpdated = recentlyUpdatedId == doc.id;
-                    final flashColor =
-                        status == "Approved"
-                            ? Colors.green.withOpacity(0.2)
-                            : status == "Rejected"
-                            ? Colors.red.withOpacity(0.2)
-                            : Colors.transparent;
+                    return FutureBuilder<String>(
+                      future: _getCategoryName(data['categoryId']),
+                      builder: (context, snap) {
+                        final categoryName = snap.data ?? "Loading...";
 
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isUpdated ? flashColor : Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 16,
-                        ),
-                        title: Text(
-                          name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(
-                              "Phone: $phone",
-                              style: const TextStyle(color: Colors.black54),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              "CNIC: $cnic",
-                              style: const TextStyle(color: Colors.black54),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              "Status: $status",
-                              style: TextStyle(
-                                color: getStatusColor(status),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 28,
-                              ),
-                              onPressed:
-                                  () => updateWorkerStatus(
-                                    doc.id,
-                                    "Approved",
-                                    token,
-                                  ),
-                              tooltip: "Approve",
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.cancel,
-                                color: Colors.red,
-                                size: 28,
-                              ),
-                              onPressed:
-                                  () => updateWorkerStatus(
-                                    doc.id,
-                                    "Rejected",
-                                    token,
-                                  ),
-                              tooltip: "Reject",
-                            ),
-                          ],
-                        ),
-                      ),
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          child: ListTile(
+  title: Row(
+    children: [
+      Text(
+        data['name'] ?? "No Name",
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(width: 6),
+
+      // 🔰 Verification Badge
+      Icon(
+        statusIcon(data['status'] ?? "pending"),
+        color: statusColor(data['status'] ?? "pending"),
+        size: 18,
+      ),
+    ],
+  ),
+  subtitle: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(categoryName),
+      const SizedBox(height: 2),
+      Text(
+        (data['status'] ?? "pending").toUpperCase(),
+        style: TextStyle(
+          color: statusColor(data['status'] ?? "pending"),
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    ],
+  ),
+  trailing: PopupMenuButton<String>(
+    onSelected: (value) {
+      updateWorkerStatus(doc.id, value);
+    },
+    itemBuilder: (_) => [
+      const PopupMenuItem(
+        value: "approved",
+        child: Text("Approve"),
+      ),
+      const PopupMenuItem(
+        value: "blocked",
+        child: Text("Block"),
+      ),
+    ],
+  ),
+  onTap: () => _showWorkerDetails(data, categoryName),
+),
+
+                        );
+                      },
                     );
                   },
                 );

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class WorkerWallet extends StatefulWidget {
   const WorkerWallet({super.key});
@@ -8,149 +10,162 @@ class WorkerWallet extends StatefulWidget {
 }
 
 class _WorkerWalletState extends State<WorkerWallet> {
+  double walletAmount = 0;
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallet();
+  }
+
+  Future<void> _loadWallet() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final snap =
+        await FirebaseFirestore.instance.collection("users").doc(uid).get();
+
+    if (snap.exists) {
+      setState(() {
+        walletAmount = (snap.data()?['walletAmount'] ?? 0).toDouble();
+        loading = false;
+      });
+    } else {
+      setState(() => loading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
-      appBar: AppBar(
-        backgroundColor: Colors.blue.shade600,
-        elevation: 3,
-        title: const Text(
-          "Worker Wallet",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xFFF4F6FA),
+
+      // ❌ No AppBar Title (WorkerPanel already shows header)
 
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// Wallet Card
+            /// 💳 WALLET CARD
             Container(
               width: double.infinity,
               height: 180,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade600, Colors.lightBlue.shade300],
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1E3C72), Color(0xFF2A5298)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(22),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.shade200.withOpacity(0.5),
+                    color: Colors.black.withOpacity(.25),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   ),
                 ],
               ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    top: 20,
-                    left: 20,
-                    child: Text(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
                       "Available Balance",
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    loading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(
+                            "Rs ${walletAmount.toStringAsFixed(0)}",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                    const Spacer(),
+                    const Align(
+                      alignment: Alignment.bottomRight,
+                      child: Icon(
+                        Icons.account_balance_wallet,
+                        color: Colors.white70,
+                        size: 42,
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 55,
-                    left: 20,
-                    child: Text(
-                      "PKR 0.00",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 34,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 20,
-                    right: 20,
-                    child: Icon(
-                      Icons.account_balance_wallet_outlined,
-                      color: Colors.white.withOpacity(0.8),
-                      size: 42,
-                    ),
-                  ),
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
 
-            const SizedBox(height: 40),
+            const SizedBox(height: 30),
 
-            /// Coming Soon Message System
+            /// ➕➖ ACTION BUTTONS
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.add , color:  Colors.white),
+                    label: const Text("Deposit", style: TextStyle(color: Colors.white , fontWeight: FontWeight.bold),),
+                    onPressed: () {
+                      // TODO: Deposit logic
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1E3C72),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.remove , color: Colors.black,),
+                    label: const Text("Withdraw", style: TextStyle(color: const Color(0xFF1E3C72), fontWeight: FontWeight.bold),),
+                    onPressed: walletAmount <= 0
+                        ? null
+                        : () {
+                            // TODO: Withdraw logic
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
+
+            /// ℹ️ INFO CARD
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: Colors.blue.shade100, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.shade100,
+                    color: Colors.black.withOpacity(.05),
                     blurRadius: 8,
-                    offset: const Offset(0, 5),
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Row(
-                children: [
-                  Icon(
-                    Icons.message_rounded,
-                    color: Colors.blue.shade600,
-                    size: 38,
-                  ),
-                  const SizedBox(width: 15),
+                children: const [
+                  Icon(Icons.info_outline, color: Color(0xFF1E3C72)),
+                  SizedBox(width: 12),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Message Wallet System",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue.shade700,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "Exciting new feature is on the way!\nStay tuned for updates.",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 6,
-                      horizontal: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.shade200),
-                    ),
                     child: Text(
-                      "Coming Soon",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade700,
-                      ),
+                      "Wallet system is under enhancement. Deposits & withdrawals will be enabled soon.",
+                      style: TextStyle(color: Colors.black54),
                     ),
                   ),
                 ],

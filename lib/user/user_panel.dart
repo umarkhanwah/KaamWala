@@ -12,6 +12,7 @@ import 'package:kam_wala_app/feedback/userfeedbackscreen.dart';
 import 'package:kam_wala_app/user/edit_profile_screen.dart';
 import 'package:kam_wala_app/user/terms_conditions_screen.dart';
 import 'package:kam_wala_app/user/3services_select_screen.dart';
+import 'package:kam_wala_app/worker/WorkerPanel.dart';
 
 class UserPanel extends StatefulWidget {
   const UserPanel({super.key});
@@ -101,75 +102,81 @@ class _UserPanelState extends State<UserPanel> {
 
           var userData = snapshot.data!.data() as Map<String, dynamic>;
 
-          return ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              UserAccountsDrawerHeader(
-                decoration: const BoxDecoration(color: Colors.black87),
-                accountName: Text(
-                  userData['name'] ?? "Demo User", // Firestore name
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                accountEmail: Text(userData['email'] ?? "No Email"),
-                currentAccountPicture: const CircleAvatar(
-                  backgroundImage: AssetImage(
-                    "assets/demo_user.png",
-                  ), // Demo pic
-                ),
-                otherAccountsPictures: [
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const EditProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+         return ListView(
+  padding: EdgeInsets.zero,
+  children: [
+    UserAccountsDrawerHeader(
+      decoration: const BoxDecoration(color: Colors.black87),
+      accountName: Text(
+        userData['name'] ?? "Demo User",
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      accountEmail: Text(userData['email'] ?? "No Email"),
+      currentAccountPicture: const CircleAvatar(
+        backgroundImage: AssetImage("assets/demo_user.png"),
+      ),
+      otherAccountsPictures: [
+        IconButton(
+          icon: const Icon(Icons.edit, color: Colors.white),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EditProfileScreen(),
               ),
-              ListTile(
-                leading: const Icon(Icons.switch_account),
-                title: const Text("Switch to Worker"),
-                onTap: () {
-                  // worker panel logic
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.person),
-                title: const Text("Edit Profile"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const EditProfileScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.article),
-                title: const Text("Terms & Conditions"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const TermsConditionsScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text("Logout"),
-                onTap: _logout,
-              ),
-            ],
-          );
+            );
+          },
+        ),
+      ],
+    ),
+
+    // ✅ ONLY FOR WORKER ROLE
+    if (userData['role'] == 'worker')
+      ListTile(
+        leading: const Icon(Icons.switch_account),
+        title: const Text("Switch to Worker"),
+        onTap: () {
+          Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => WorkerPanel()),
+      );
         },
+      ),
+
+    const Divider(),
+
+    ListTile(
+      leading: const Icon(Icons.person),
+      title: const Text("Edit Profile"),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const EditProfileScreen(),
+          ),
+        );
+      },
+    ),
+    ListTile(
+      leading: const Icon(Icons.article),
+      title: const Text("Terms & Conditions"),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const TermsConditionsScreen(),
+          ),
+        );
+      },
+    ),
+    ListTile(
+      leading: const Icon(Icons.logout),
+      title: const Text("Logout"),
+      onTap: _logout,
+    ),
+  ],
+);
+   },
       ),
     );
   }

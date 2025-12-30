@@ -5,10 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:kam_wala_app/Admin/Adminpanel.dart';
+import 'package:kam_wala_app/Auth/signup_screen.dart';
 import 'package:kam_wala_app/Service_Request/worker_requests_page.dart';
 import 'package:kam_wala_app/dashboard/admin_home.dart';
 import 'package:kam_wala_app/screens/ResetPassword.dart';
 import 'package:kam_wala_app/screens/main_screen.dart';
+import 'package:kam_wala_app/worker/WorkerPanel.dart';
 import 'package:kam_wala_app/worker/worker_registration.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -114,7 +116,7 @@ class _LoginScreen1State extends State<LoginScreen1>
     } else if (role == 'worker') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => WorkerRegistrationPage()),
+        MaterialPageRoute(builder: (_) => WorkerPanel()),
       );
     } else if (role == 'user') {
       Navigator.pushReplacement(
@@ -344,10 +346,7 @@ class _LoginScreen1State extends State<LoginScreen1>
                                 child: Container(
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
-                                      color: Colors.lightBlue.shade100,
-                                      width: 2,
-                                    ),
+                                    
                                   ),
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(20),
@@ -360,7 +359,7 @@ class _LoginScreen1State extends State<LoginScreen1>
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 28),
+                            const SizedBox(height: 5),
 
                             Text(
                               'Welcome Back',
@@ -416,9 +415,30 @@ class _LoginScreen1State extends State<LoginScreen1>
 
                             const SizedBox(height: 12),
 
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children:[ 
+                                TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (_) => const SignupScreen1(),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  "Create Account",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.blue,
+                                    fontWeight: FontWeight.w700,
+                                    decoration: TextDecoration.underline,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                                TextButton(
                                 onPressed: () {
                                   Navigator.push(
                                     context,
@@ -438,9 +458,10 @@ class _LoginScreen1State extends State<LoginScreen1>
                                   ),
                                 ),
                               ),
+                              ]
                             ),
 
-                            const SizedBox(height: 36),
+                            const SizedBox(height: 10),
 
                             SizedBox(
                               width: double.infinity,
