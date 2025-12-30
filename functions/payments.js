@@ -7,10 +7,11 @@ const SAFE_PAY_PUBLIC_KEY = "sec_66e8644c-ec55-4267-be74-826165c2f8d0";
 // Dashboard -> Webhooks se Webhook Secret copy karke yahan lagayein
 const SAFE_PAY_WEBHOOK_SECRET = "943af9acf958cb03780be46fd5f0629ba11c33db098ec515a382eb743ebccd18"; 
 
-exports.createSafepayCheckout = onRequest(async (req, res) => {
+exports.createSafepayCheckout = onRequest({ cors: true }, async (req, res) => {
     const { amount, workerId } = req.body;
 
     try {
+        // 1. Token generate karein
         const response = await axios.post("https://sandbox.api.getsafepay.com/order/v1/init", {
             client: SAFE_PAY_PUBLIC_KEY,
             amount: amount,
@@ -18,15 +19,21 @@ exports.createSafepayCheckout = onRequest(async (req, res) => {
             environment: "sandbox"
         });
 
+        // Safepay bid (token) yahan se milta hai
         const token = response.data.data.token;
-        
-        // Success hone par worker_id ko URL parameters mein pass karna zaroori hai
-        // Taake webhook ko pata chale kis worker ka balance barhana hai
-        const checkoutUrl = `https://sandbox.api.getsafepay.com/checkout/pay?bid=${token}&amount=${amount}&currency=PKR&worker_id=${workerId}`;
+
+        // 2. Checkout URL (Standard Sandbox Format)
+        // Note: Query parameters ka order aur spelling bohot zaroori hai
+        const checkoutUrl = `https://sandbox.api.getsafepay.com/checkout/pay` + 
+                            `?beacon=${token}` + 
+                            `&amount=${amount}` + 
+                            `&currency=PKR` + 
+                            `&worker_id=${workerId}` + 
+                            `&env=sandbox`;
 
         res.status(200).send({ url: checkoutUrl });
     } catch (error) {
-        console.error("Safepay Init Error:", error);
+        console.error("Safepay Init Error:", error.response ? error.response.data : error.message);
         res.status(500).send("Checkout error");
     }
 });

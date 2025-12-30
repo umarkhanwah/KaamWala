@@ -97,7 +97,7 @@ Future<void> _handleWithdraw() async {
 
       final response = await http.post(
         // 🚨 APNA FUNCTION URL YAHAN PASTE KAREIN
-        Uri.parse('https://YOUR_CLOUD_FUNCTION_URL/createSafepayCheckout'),
+        Uri.parse('https://createsafepaycheckout-bmy5zehieq-uc.a.run.app'),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "amount": amount,
@@ -117,6 +117,7 @@ Future<void> _handleWithdraw() async {
       }
     } catch (e) {
       _showError("Connection error. Check your internet.");
+      print(e);
     } finally {
       if (mounted) setState(() => isProcessing = false);
     }
