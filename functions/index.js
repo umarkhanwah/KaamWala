@@ -1,3 +1,58 @@
+// const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+// const admin = require("firebase-admin");
+
+// admin.initializeApp();
+
+// exports.notifyWorkersOnRequest = onDocumentCreated(
+//   "requests/{requestId}",
+//   async (event) => {
+
+//     const requestData = event.data.data();
+//     const requestId = event.params.requestId;
+
+//     console.log("🔥 New request:", requestId);
+
+//     // ✅ READ FROM USERS (WORKERS)
+//     const workersSnap = await admin.firestore()
+//       .collection("users")
+//       .where("role", "==", "worker")
+//       .where("categoryId", "==", requestData.categoryId)
+//       .get();
+
+//     if (workersSnap.empty) {
+//       console.log("⚠ No workers found");
+//       return;
+//     }
+
+//     const tokens = [];
+
+//     workersSnap.forEach(doc => {
+//       const token = doc.data().fcmToken;
+//       if (token) tokens.push(token);
+//     });
+
+//     if (tokens.length === 0) {
+//       console.log("⚠ No FCM tokens found");
+//       return;
+//     }
+
+//     await admin.messaging().sendEachForMulticast({
+//       tokens,
+//       notification: {
+//         title: "New Job Request",
+//         body: requestData.serviceName,
+//       },
+//       data: {
+//         screen: "worker_notification",
+//         requestId,
+//       },
+//     });
+
+//     console.log("✅ Notification sent to", tokens.length, "workers");
+//   }
+// );
+
+
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
 const admin = require("firebase-admin");
 
@@ -12,15 +67,16 @@ exports.notifyWorkersOnRequest = onDocumentCreated(
 
     console.log("🔥 New request:", requestId);
 
-    // ✅ READ FROM USERS (WORKERS)
+    // ✅ UPDATED QUERY: Added status check for "approved"
     const workersSnap = await admin.firestore()
       .collection("users")
       .where("role", "==", "worker")
       .where("categoryId", "==", requestData.categoryId)
+      .where("status", "==", "approved") // 👈 Yeh line add ki gayi hai
       .get();
 
     if (workersSnap.empty) {
-      console.log("⚠ No workers found");
+      console.log("⚠ No approved workers found for this category");
       return;
     }
 
@@ -32,22 +88,25 @@ exports.notifyWorkersOnRequest = onDocumentCreated(
     });
 
     if (tokens.length === 0) {
-      console.log("⚠ No FCM tokens found");
+      console.log("⚠ No FCM tokens found for approved workers");
       return;
     }
 
-    await admin.messaging().sendEachForMulticast({
-      tokens,
-      notification: {
-        title: "New Job Request",
-        body: requestData.serviceName,
-      },
-      data: {
-        screen: "worker_notification",
-        requestId,
-      },
-    });
-
-    console.log("✅ Notification sent to", tokens.length, "workers");
+    try {
+      await admin.messaging().sendEachForMulticast({
+        tokens,
+        notification: {
+          title: "New Job Request",
+          body: requestData.serviceName,
+        },
+        data: {
+          screen: "worker_notification",
+          requestId,
+        },
+      });
+      console.log("✅ Notification sent to", tokens.length, "approved workers");
+    } catch (error) {
+      console.error("❌ Error sending notification:", error);
+    }
   }
 );

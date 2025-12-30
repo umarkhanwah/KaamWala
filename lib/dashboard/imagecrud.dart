@@ -135,14 +135,21 @@ class _DataAddState extends State<DataAdd> {
             child: Column(
               
               children: [
-                const Text(
-                  "Manage Services",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+              AppBar(
+  backgroundColor: Colors.transparent, // Background color apni marzi ka rakhein
+  elevation: 0,
+  leading: const BackButton(color: Colors.white),
+  centerTitle: true,
+  title: const Text(
+    "Manage Services",
+    style: TextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+      color: Colors.white,
+    ),
+  ),
+)
+,
                 const SizedBox(height: 20),
 
                 /// 🧾 FORM CARD
