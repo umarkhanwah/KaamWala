@@ -87,24 +87,68 @@ Future<void> _handleWithdraw() async {
     }
   });
 }
+
+Future<void> _showDepositDialog() async {
+  final TextEditingController amountController = TextEditingController();
+  
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text("Deposit Money"),
+      content: TextField(
+        controller: amountController,
+        decoration: const InputDecoration(
+          hintText: "Enter amount (e.g. 500)",
+          prefixText: "Rs ",
+        ),
+        keyboardType: TextInputType.number,
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+        ElevatedButton(
+          onPressed: () {
+            double amt = double.tryParse(amountController.text) ?? 0;
+            if (amt >= 100) { // Safepay minimum limit aksar 100 hoti hai
+              Navigator.pop(context);
+              _handleDeposit(amt); // Amount pass kar rahe hain
+            } else {
+              _showError("Minimum deposit is Rs 100");
+            }
+          },
+          child: const Text("Proceed"),
+        ),
+      ],
+    ),
+  );
+}
   // ✅ DEPOSIT FUNCTION
-  Future<void> _handleDeposit() async {
-    setState(() => isProcessing = true);
+  Future<void> _handleDeposit(double amount) async {
+    // setState(() => isProcessing = true);
 
-    try {
-      final String uid = FirebaseAuth.instance.currentUser!.uid;
-      const double amount = 500.0; // Filhal fix amount, aap input le sakte hain
+    // try {
+    //   final String uid = FirebaseAuth.instance.currentUser!.uid;
+    //   const double amount = 500.0; // Filhal fix amount, aap input le sakte hain
 
-      final response = await http.post(
-        // 🚨 APNA FUNCTION URL YAHAN PASTE KAREIN
-        Uri.parse('https://createsafepaycheckout-bmy5zehieq-uc.a.run.app'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "amount": amount,
-          "workerId": uid,
-        }),
-      );
-
+    //   final response = await http.post(
+    //     // 🚨 APNA FUNCTION URL YAHAN PASTE KAREIN
+    //     Uri.parse('https://createsafepaycheckout-bmy5zehieq-uc.a.run.app'),
+    //     headers: {"Content-Type": "application/json"},
+    //     body: jsonEncode({
+    //       "amount": amount,
+    //       "workerId": uid,
+    //     }),
+    //   );
+setState(() => isProcessing = true);
+  try {
+    final String uid = FirebaseAuth.instance.currentUser!.uid;
+    final response = await http.post(
+      Uri.parse('https://createsafepaycheckout-bmy5zehieq-uc.a.run.app'),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "amount": amount,
+        "workerId": uid,
+      }),
+    );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final String checkoutUrl = data['url'];
@@ -202,7 +246,7 @@ Future<void> _handleWithdraw() async {
                       isProcessing ? "Wait..." : "Deposit", 
                       style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
-                    onPressed: isProcessing ? null : _handleDeposit, // ✅ Logic Linked
+                    onPressed: isProcessing ? null : _showDepositDialog, // ✅ Logic Linked
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E3C72),
                       padding: const EdgeInsets.symmetric(vertical: 14),

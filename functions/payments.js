@@ -1,17 +1,25 @@
 const { onRequest } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const axios = require("axios");
-const crypto = require("crypto"); // Security signature verify karne ke liye
+const crypto = require("crypto");
+
+// Initialize Admin (Agar pehle nahi kiya)
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
 
 const SAFE_PAY_PUBLIC_KEY = "sec_66e8644c-ec55-4267-be74-826165c2f8d0";
-// Dashboard -> Webhooks se Webhook Secret copy karke yahan lagayein
 const SAFE_PAY_WEBHOOK_SECRET = "943af9acf958cb03780be46fd5f0629ba11c33db098ec515a382eb743ebccd18"; 
 
+// 1. Checkout URL banane wala function
 exports.createSafepayCheckout = onRequest({ cors: true }, async (req, res) => {
     const { amount, workerId } = req.body;
 
+    if (!amount || !workerId) {
+        return res.status(400).send("Missing amount or workerId");
+    }
+
     try {
-        // 1. Token generate karein
         const response = await axios.post("https://sandbox.api.getsafepay.com/order/v1/init", {
             client: SAFE_PAY_PUBLIC_KEY,
             amount: amount,
@@ -19,11 +27,9 @@ exports.createSafepayCheckout = onRequest({ cors: true }, async (req, res) => {
             environment: "sandbox"
         });
 
-        // Safepay bid (token) yahan se milta hai
         const token = response.data.data.token;
 
-        // 2. Checkout URL (Standard Sandbox Format)
-        // Note: Query parameters ka order aur spelling bohot zaroori hai
+        // Final Correct Sandbox URL
         const checkoutUrl = `https://sandbox.api.getsafepay.com/checkout/pay` + 
                             `?beacon=${token}` + 
                             `&amount=${amount}` + 
@@ -31,38 +37,33 @@ exports.createSafepayCheckout = onRequest({ cors: true }, async (req, res) => {
                             `&worker_id=${workerId}` + 
                             `&env=sandbox`;
 
+        console.log(`✅ Checkout Created for Worker: ${workerId}, Amount: ${amount}`);
         res.status(200).send({ url: checkoutUrl });
     } catch (error) {
-        console.error("Safepay Init Error:", error.response ? error.response.data : error.message);
+        console.error("❌ Safepay Init Error:", error.response ? error.response.data : error.message);
         res.status(500).send("Checkout error");
     }
 });
 
-exports.safepayWebhook = onRequest(async (req, res) => {
-    // 1. Security Check (Signature Verification)
-    // Yeh step zaroori hai taake koi fake request bhej kar balance na barha sake
-    const signature = req.headers["x-sfpy-signature"];
-    const payload = JSON.stringify(req.body);
-    
-    // Agar aapne Webhook Secret set kiya hai, to yahan verify karein:
-    /*
-    const expectedSignature = crypto.createHmac('sha256', SAFE_PAY_WEBHOOK_SECRET).update(payload).digest('hex');
-    if (signature !== expectedSignature) {
-        return res.status(401).send("Invalid Signature");
-    }
-    */
-
+// 2. Wallet Update karne wala function (Webhook)
+exports.safepayWebhook = onRequest({ cors: true }, async (req, res) => {
     const data = req.body;
     
-    // Safepay "TRACKER_ENDED" tab bhejta hai jab payment successfully mukammal ho jaye
-    if (data.state === "TRACKER_ENDED") {
-        // Humne URL mein worker_id bheja tha, wo req.query se milega
-        const workerId = req.query.worker_id; 
+    console.log("🔔 Webhook Payload:", JSON.stringify(data));
+
+    // Safepay Sandbox aksar payment success par status 'TRACKER_ENDED' bhejta hai
+    if (data.state === "TRACKER_ENDED" || data.status === "success") {
+        
+        // ✨ Worker ID dhoondne ka behtar tareeqa
+        // Pehle URL parameters (req.query) check karega, phir body data (data.worker_id)
+        const workerId = req.query.worker_id || data.worker_id || (data.metadata ? data.metadata.worker_id : null);
         const amount = parseFloat(data.amount);
 
+        console.log(`🔍 Processing for Worker: ${workerId}, Amount: ${amount}`);
+
         if (!workerId) {
-            console.error("❌ No Worker ID found in webhook URL");
-            return res.status(400).send("No Worker ID");
+            console.error("❌ Worker ID missing in all locations!");
+            return res.status(400).send("Worker ID not found");
         }
 
         const workerRef = admin.firestore().collection("users").doc(workerId);
@@ -70,33 +71,27 @@ exports.safepayWebhook = onRequest(async (req, res) => {
         try {
             await admin.firestore().runTransaction(async (t) => {
                 const doc = await t.get(workerRef);
-                if (!doc.exists) {
-                    throw new Error("Worker does not exist");
-                }
+                if (!doc.exists) throw new Error("Worker doc missing");
 
-                const currentBalance = doc.data().walletAmount || 0;
-                const newBalance = currentBalance + amount;
-                
-                t.update(workerRef, { walletAmount: newBalance });
-                
+                const currentBalance = (doc.data().walletAmount || 0);
+                t.update(workerRef, { walletAmount: currentBalance + amount });
+
                 const historyRef = admin.firestore().collection("wallet_history").doc();
                 t.set(historyRef, {
                     workerId,
                     amount,
                     type: "deposit",
-                    status: "success",
-                    reference: data.tracker, // Safepay transaction reference
                     timestamp: admin.firestore.FieldValue.serverTimestamp()
                 });
             });
 
-            console.log(`✅ Success: Added ${amount} to Worker ${workerId}`);
-            res.status(200).send("OK");
+            console.log("✅ Wallet Updated Successfully!");
+            return res.status(200).send("OK");
         } catch (e) {
-            console.error("❌ Firestore Update Error:", e.message);
-            res.status(500).send("DB Error");
+            console.error("❌ DB Error:", e.message);
+            return res.status(500).send("DB Update Failed");
         }
     } else {
-        res.status(200).send("Event ignored");
+        return res.status(200).send("Status not success, ignored.");
     }
 });
