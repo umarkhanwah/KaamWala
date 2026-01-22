@@ -54,67 +54,74 @@ class _WorkerNotificationPageState extends State<WorkerNotificationPage> {
 
 Future<void> _acceptRequest(Map<String, dynamic> data) async {
   if (selectedETA == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Please select ETA")),
-    );
+    _showError("Please select ETA");
     return;
   }
 
-  if (!data.containsKey("location") || data["location"] == null) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("User location missing in request")),
-    );
-    return;
-  }
-
-  // 1. Calculate 20% Commission
-  final double serviceCharges = (data["charges"] as num).toDouble();
-  final double commission = serviceCharges * 0.20;
+  // Loading indicator dikhayein taake worker ko pata chale process ho raha hai
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) => const Center(child: CircularProgressIndicator()),
+  );
 
   final String workerUid = FirebaseAuth.instance.currentUser!.uid;
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   try {
-    // 2. Start Transaction for Wallet Check and Update
+    debugPrint("🚀 Transaction shuru ho rahi hai... ID: $workerUid");
+
     await firestore.runTransaction((transaction) async {
-      // Get Worker Document
+      // 1. Worker ka data users collection se uthayein
       DocumentReference workerRef = firestore.collection("users").doc(workerUid);
       DocumentSnapshot workerSnap = await transaction.get(workerRef);
 
-      if (!workerSnap.exists) throw "Worker account not found";
+      if (!workerSnap.exists) throw "Worker account not found in 'users' collection";
 
-      double currentWallet = (workerSnap.get("walletAmount") ?? 0).toDouble();
+      // 2. Charges aur Commission calculate karein
+      // Agar charges null hain ya string hain toh unhein handle karein
+      double serviceCharges = double.tryParse(data["charges"].toString()) ?? 0;
+      double commission = serviceCharges * 0.20;
+      
+      // Wallet amount check (agar field nahi hai toh 0 farz karein)
+      Map<String, dynamic> workerData = workerSnap.data() as Map<String, dynamic>;
+      double currentWallet = (workerData["walletAmount"] ?? 0).toDouble();
 
-      // 3. Balance Check
+      debugPrint("💰 Current Wallet: $currentWallet, Required: $commission");
+
       if (currentWallet < commission) {
-        throw "Insufficient balance. You need Rs ${commission.toStringAsFixed(0)} (20% commission) in your wallet to accept this request.";
+        throw "Insufficient balance. Rs ${commission.toStringAsFixed(0)} commission required.";
       }
 
-      // 4. Find Admin Document
-      QuerySnapshot adminQuery = await firestore
+      // 3. Admin dhoondein (Jis ka role 'admin' ho)
+      final adminQuery = await firestore
           .collection("users")
           .where("role", isEqualTo: "admin")
           .limit(1)
           .get();
 
-      if (adminQuery.docs.isEmpty) throw "Admin account not configured";
+      if (adminQuery.docs.isEmpty) throw "Admin not found! Please check user roles.";
+      
       DocumentReference adminRef = adminQuery.docs.first.reference;
 
-      // 5. Perform Wallet Updates
+      // 4. Sab updates aik saath apply karein
+      // Worker ke wallet se deduct karein
       transaction.update(workerRef, {"walletAmount": currentWallet - commission});
+      
+      // Admin ke wallet mein barhaein
       transaction.update(adminRef, {"walletAmount": FieldValue.increment(commission)});
-
-      // 6. Update Request Status
+      
+      // Request ka status update karein
       transaction.update(firestore.collection("requests").doc(widget.requestId), {
         "status": "accepted",
         "workerId": workerUid,
-        "workerName": workerSnap.get("name"),
-        "workerPhone": workerSnap.get("phone"),
+        "workerName": workerData["name"] ?? "Worker",
+        "workerPhone": workerData["phone"] ?? "",
         "eta": selectedETA,
         "commissionDeducted": commission,
       });
-      
-      // 7. Add History Record
+
+      // 5. History record save karein
       DocumentReference historyRef = firestore.collection("wallet_history").doc();
       transaction.set(historyRef, {
         "workerId": workerUid,
@@ -123,36 +130,36 @@ Future<void> _acceptRequest(Map<String, dynamic> data) async {
         "requestId": widget.requestId,
         "timestamp": FieldValue.serverTimestamp(),
       });
+
+      debugPrint("✅ Transaction successfully complete!");
     });
 
-    // 8. Navigation after successful transaction
+    // Loading hatayein
+    if (mounted) Navigator.pop(context);
+
+    // 6. Navigation to Map Page
     final location = Map<String, dynamic>.from(data["location"]);
-    final double userLat = (location["lat"] as num).toDouble();
-    final double userLng = (location["lng"] as num).toDouble();
-
-    final userDoc = await firestore.collection("users").doc(data["userId"]).get();
-    final userData = userDoc.data()!;
-
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => WorkerMapPage(
           workerLat: workerPosition!.latitude,
           workerLng: workerPosition!.longitude,
-          userLat: userLat,
-          userLng: userLng,
-          userName: userData["name"] ?? "Customer",
-          userPhone: userData["phone"] ?? "",
+          userLat: (location["lat"] as num).toDouble(),
+          userLng: (location["lng"] as num).toDouble(),
+          userName: data["userName"] ?? "Customer",
+          userPhone: data["userPhone"] ?? "",
           requestId: widget.requestId,
         ),
       ),
     );
 
   } catch (e) {
+    if (mounted) Navigator.pop(context); // Loading hatayein
+    debugPrint("❌ Error Details: $e");
     _showError(e.toString());
   }
 }
-
 // Utility function for error snackbar
 void _showError(String msg) {
   ScaffoldMessenger.of(context).showSnackBar(
